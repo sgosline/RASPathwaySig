@@ -35,6 +35,8 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
     genevals<-mclapply(genelist,function(g2){
       other.muts<-getMutDataForGene(g2,FALSE,cancerType)
       other.mut.pats<-toPatientId(as.character(other.muts$Tumor))
+      if(length(other.mut.pats)==0)
+          return(0.0)
       other.vec<-rep("WT",length(expr.pats))
       other.vec[match(other.mut.pats,expr.pats)]<-'MUTANT'
       other.vec<-factor(other.vec,levels=c("WT","MUTANT"))
@@ -75,3 +77,5 @@ getPredStats<-function(genelist){
     write.table(res,filename='pathwayStats.txt',sep='\t')
 
 }
+
+res<-getPredStats(genelist)
