@@ -62,14 +62,14 @@ genelist=c("RASA1","SPRED1","NF1","TP53","NRAS","KRAS","BRAF","EGFR","SHC1","GRB
 
 getPredStats<-function(genelist){
 
-    res<-do.call('rbind',mlapply(names(tumsByDis),function(ct){
+    res<-do.call('rbind',mclapply(names(tumsByDis),function(ct){
         df<-crossGenePreds(genelist,cancerType=ct)
         #get offdiagonal predictions
         ndmat<-apply(df,2,unlist)*1-diag(nrow(df))
         #now collect mean values
         stats<-c(apply(ndmat,1,function(x) mean(x[x>0])),apply(ndmat,2,function(x) mean(x[x>0])))
         return(stats)
-    }))
+    },mc.cores=8))
 
     rownames(res)<-names(tumsByDis)
     write.table(res,filename='pathwayStats.txt',sep='\t')
