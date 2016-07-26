@@ -1,6 +1,6 @@
-
 source("../../bin/elasticNetPred.R")
 require(parallel)
+library(pheatmap)
 ##patient identifiers from the expression data
 expr.pats<-toPatientId(colnames(alldat))
 
@@ -8,7 +8,10 @@ expr.pats<-toPatientId(colnames(alldat))
 dis.inds<-lapply(tumsByDis,function(x) which(expr.pats%in%toPatientId(x)))
 
 
-##get a list of genes, compare cross-gene predictivity'
+#'Get AUC values by predicting from one mutation to another
+#' @param genelist list of genes to compare across
+#' @param cancerType TCGA cancer abbreviation
+#' @param minPat number of patients to require in predictor
 crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
   #iterate through the gene list
   df=do.call('rbind',mclapply(genelist,function(g){
@@ -23,7 +26,7 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
           #get expression data
     exprdata<-alldat
     expr.pats<-toPatientId(colnames(exprdata)[-1])
-    
+
     mut.vec=rep('WT',length(expr.pats))
     mut.vec[match(mut.pats,expr.pats)]<-'MUTANT'
     mut.vec=factor(mut.vec,levels=c("WT","MUTANT"))
@@ -39,9 +42,36 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
       return(res$AUC)
     },mc.cores=10)
     return(genevals)
-  },mc.cores=10))
+},mc.cores=10))
+  rownames(df)<-paste("From",genelist)
+  colnames(df)<-paste("To",genelist)
+
+  pheatmap(apply(df,2,unlist),cellheight=10,cellwidth=10,main=paste(cancerType,'predictor AUC values'),filename=paste(cancerType,'min',minPat,'patientPredictorAUCvals.pdf',sep=''))
+  write.table(df,quote=F,file=paste(cancerType,'min',minPat,'patientPredictorAUCvals.txt',sep=''),sep='\t')
+
+
+
   return(df)
+
+
 }
 
-genelist=c("RASA1","SPRED1","NF1","TP53","NRAS","KRAS","BRAF","EGFR")
-rdf<-crossGenePreds(genelist)
+
+
+genelist=c("RASA1","SPRED1","NF1","TP53","NRAS","KRAS","BRAF","EGFR","SHC1","GRB2","MAP2K1","MAP2K","CDK4","RB1","PAK1","SOS1","PTEN","AKT1","PDK1","MTOR")
+
+getPredStats<-function(genelist){
+
+    res<-do.call('rbind',mlapply(names(tumsByDis),function(ct){
+        df<-crossGenePreds(genelist,cancerType=ct)
+        #get offdiagonal predictions
+        ndmat<-apply(df,2,unlist)*1-diag(nrow(df))
+        #now collect mean values
+        stats<-c(apply(ndmat,1,function(x) mean(x[x>0])),apply(ndmat,2,function(x) mean(x[x>0])))
+        return(stats)
+    }))
+
+    rownames(res)<-names(tumsByDis)
+    write.table(res,filename='pathwayStats.txt',sep='\t')
+
+}
