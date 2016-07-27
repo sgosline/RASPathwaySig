@@ -74,7 +74,7 @@ getPredStats<-function(genelist){
     },mc.cores=8))
 
     rownames(res)<-names(tumsByDis)
-    write.table(res,filename='pathwayStats.txt',sep='\t')
+    write.table(res,file='pathwayStats.txt',sep='\t')
 
 }
 
