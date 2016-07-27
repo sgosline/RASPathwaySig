@@ -35,16 +35,18 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
     genevals<-mclapply(genelist,function(g2){
       other.muts<-getMutDataForGene(g2,FALSE,cancerType)
       other.mut.pats<-toPatientId(as.character(other.muts$Tumor))
-      if(length(other.mut.pats)==0)
-          return(0.0)
+
+
       other.vec<-rep("WT",length(expr.pats))
       other.vec[match(other.mut.pats,expr.pats)]<-'MUTANT'
       other.vec<-factor(other.vec,levels=c("WT","MUTANT"))
+      if(length(which(other.vec=='MUTANT'))<2)
+          return(0.0)
       res=model.pred(fit,exprdata,other.vec,pref=paste(g,g2,sep='_to_'),doPlot=F)
       return(res$AUC)
-    },mc.cores=10)
+    },mc.cores=8)
     return(genevals)
-},mc.cores=10))
+},mc.cores=8))
   rownames(df)<-paste("From",genelist)
   colnames(df)<-paste("To",genelist)
 
