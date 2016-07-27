@@ -39,7 +39,11 @@ model.pred<-function(cvfit,exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
   
   coeffs=coef(cvfit, s = "lambda.min")
   
-  pfit = predict(cvfit,t(exprdata[,-1]),s=minlambda,type="response")
+  auc.val=0
+  pfit<-NULL
+   try(pfit <- predict(cvfit,t(exprdata[,-1]),s=minlambda,type="response"))
+  if(is.null(pfit))
+	return(auc.val)
   
   df<-data.frame(Prediction=pfit[,1],MutationStatus=mut.vec)
   ##plot predicted scores of MT vs WT
@@ -51,7 +55,6 @@ model.pred<-function(cvfit,exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
     dev.off()
   }
   
-  auc.val=0
   try(auc.val<-auc(roc(MutationStatus~Prediction,df)))
   
   return(list(Response=df,Coeff=coeffs,AUC=auc.val))

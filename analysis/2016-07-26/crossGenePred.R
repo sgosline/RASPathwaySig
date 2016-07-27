@@ -20,9 +20,6 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
     mut.pats=toPatientId(as.character(mutdata$Tumor))
     genevals=rep(0,length(genelist))
     names(genevals)<-genelist
-    if(length(mut.pats)<minPat){
-      return(genevals)
-    }
           #get expression data
     exprdata<-alldat
     expr.pats<-toPatientId(colnames(exprdata)[-1])
@@ -30,6 +27,10 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
     mut.vec=rep('WT',length(expr.pats))
     mut.vec[match(mut.pats,expr.pats)]<-'MUTANT'
     mut.vec=factor(mut.vec,levels=c("WT","MUTANT"))
+
+    if(length(which(mut.vec=='MUTANT'))<minPat){
+      return(genevals)
+    }
     #build model
     fit=model.build(exprdata,mut.vec,pref=g,doPlot=FALSE)
     genevals<-mclapply(genelist,function(g2){
@@ -44,9 +45,9 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
           return(0.0)
       res=model.pred(fit,exprdata,other.vec,pref=paste(g,g2,sep='_to_'),doPlot=F)
       return(res$AUC)
-    },mc.cores=8)
+    },mc.cores=4)
     return(genevals)
-},mc.cores=8))
+},mc.cores=4))
   rownames(df)<-paste("From",genelist)
   colnames(df)<-paste("To",genelist)
 
@@ -76,7 +77,7 @@ getPredStats<-function(genelist){
         stats<-c(apply(ndmat,1,function(x) mean(x[x>0])),apply(ndmat,2,function(x) mean(x[x>0])))
 
         return(stats)
-    },mc.cores=8))
+    },mc.cores=4))
 
     rownames(res)<-names(tumsByDis)
     write.table(res,file='pathwayStats.txt',sep='\t')
