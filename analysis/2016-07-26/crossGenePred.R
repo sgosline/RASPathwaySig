@@ -50,7 +50,9 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
   rownames(df)<-paste("From",genelist)
   colnames(df)<-paste("To",genelist)
 
-  pheatmap(apply(df,2,unlist),cellheight=10,cellwidth=10,main=paste(cancerType,'predictor AUC values'),filename=paste(cancerType,'min',minPat,'patientPredictorAUCvals.pdf',sep=''))
+  dmat<-apply(df,2,unlist)
+  print(dmat)
+  pheatmap(dmat,cellheight=10,cellwidth=10,main=paste(cancerType,'predictor AUC values'),filename=paste(cancerType,'min',minPat,'patientPredictorAUCvals.pdf',sep=''))
   write.table(df,quote=F,file=paste(cancerType,'min',minPat,'patientPredictorAUCvals.txt',sep=''),sep='\t')
 
 
@@ -70,8 +72,9 @@ getPredStats<-function(genelist){
         df<-crossGenePreds(genelist,cancerType=ct)
         #get offdiagonal predictions
         ndmat<-apply(df,2,unlist)*1-diag(nrow(df))
-        #now collect mean values
+                                        #now collect mean values
         stats<-c(apply(ndmat,1,function(x) mean(x[x>0])),apply(ndmat,2,function(x) mean(x[x>0])))
+
         return(stats)
     },mc.cores=8))
 
