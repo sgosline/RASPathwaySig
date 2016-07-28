@@ -1,6 +1,7 @@
 source("../../bin/elasticNetPred.R")
-require(parallel)
 library(pheatmap)
+
+require(parallel)
 ##patient identifiers from the expression data
 expr.pats<-toPatientId(colnames(alldat))
 
@@ -14,7 +15,7 @@ dis.inds<-lapply(tumsByDis,function(x) which(expr.pats%in%toPatientId(x)))
 #' @param minPat number of patients to require in predictor
 crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
   #iterate through the gene list
-  df=do.call('rbind',mclapply(genelist,function(g){
+  df=do.call('rbind',lapply(genelist,function(g){
     ##get mutation data, including patients with mutation
     mutdata<-getMutDataForGene(g,FALSE,cancerType)
     mut.pats=toPatientId(as.character(mutdata$Tumor))
@@ -33,7 +34,7 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
     }
     #build model
     fit=model.build(exprdata,mut.vec,pref=g,doPlot=FALSE)
-    genevals<-mclapply(genelist,function(g2){
+    genevals<-lapply(genelist,function(g2){
       other.muts<-getMutDataForGene(g2,FALSE,cancerType)
       other.mut.pats<-toPatientId(as.character(other.muts$Tumor))
 
@@ -45,9 +46,9 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
           return(0.0)
       res=model.pred(fit,exprdata,other.vec,pref=paste(g,g2,sep='_to_'),doPlot=F)
       return(res$AUC)
-    },mc.cores=4)
+    })
     return(genevals)
-},mc.cores=4))
+}))
   rownames(df)<-paste("From",genelist)
   colnames(df)<-paste("To",genelist)
 
@@ -67,21 +68,28 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
 
 genelist=c("RASA1","SPRED1","NF1","TP53","NRAS","KRAS","BRAF","EGFR","SHC1","GRB2","MAP2K1","MAP2K","CDK4","RB1","PAK1","SOS1","PTEN","AKT1","PDK1","MTOR")
 
-getPredStats<-function(genelist){
+genelist<-c("KRAS","SPRED1","NF1")
 
-    res<-do.call('rbind',mclapply(names(tumsByDis),function(ct){
+getPredStats<-function(genelist){
+    #make the cluster
+    cl<-makeCluster(30,outfile='cluster.txt')
+    clusterExport(cl,"crossGenePreds")
+    clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
+    clusterEvalQ(cl,library(pheatmap))
+
+    res<-do.call('rbind',parLapply(cl,list(names(tumsByDis)),function(ct){
         df<-crossGenePreds(genelist,cancerType=ct)
-        #get offdiagonal predictions
+        print(paste('Finished',ct))
+                                        #get offdiagonal predictions
         ndmat<-apply(df,2,unlist)*1-diag(nrow(df))
                                         #now collect mean values
         stats<-c(apply(ndmat,1,function(x) mean(x[x>0])),apply(ndmat,2,function(x) mean(x[x>0])))
-
         return(stats)
-    },mc.cores=4))
+    }))
 
     rownames(res)<-names(tumsByDis)
     write.table(res,file='pathwayStats.txt',sep='\t')
-
+    stopCluster(cl)
 }
 
 res<-getPredStats(genelist)
