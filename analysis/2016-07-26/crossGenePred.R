@@ -72,12 +72,12 @@ genelist<-c("KRAS","SPRED1","NF1")
 
 getPredStats<-function(genelist){
     #make the cluster
-    cl<-makeCluster(30,outfile='cluster.txt')
+    cl<-makeCluster(length(tumsByDis),outfile='cluster.txt')
     clusterExport(cl,"crossGenePreds")
     clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
     clusterEvalQ(cl,library(pheatmap))
 
-    res<-do.call('rbind',parLapply(cl,list(names(tumsByDis)),function(ct){
+    res<-do.call('rbind',parLapply(cl,list(names(tumsByDis)),function(ct,genelist){
         df<-crossGenePreds(genelist,cancerType=ct)
         print(paste('Finished',ct))
                                         #get offdiagonal predictions
@@ -85,7 +85,7 @@ getPredStats<-function(genelist){
                                         #now collect mean values
         stats<-c(apply(ndmat,1,function(x) mean(x[x>0])),apply(ndmat,2,function(x) mean(x[x>0])))
         return(stats)
-    }))
+    },genelist))
 
     rownames(res)<-names(tumsByDis)
     write.table(res,file='pathwayStats.txt',sep='\t')
