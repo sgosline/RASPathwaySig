@@ -15,7 +15,7 @@ dis.inds<-lapply(tumsByDis,function(x) which(expr.pats%in%toPatientId(x)))
 #' @param minPat number of patients to require in predictor
 crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
                                         #iterate through the gene list
-    cl<-makeCluster(30,outfile='cluster.txt')
+    cl<-makeCluster(3,outfile='cluster.txt')
     clusterExport(cl,"getMutDataForGene")
     clusterExport(cl,"toPatientId")
     clusterExport(cl,"alldat")
@@ -62,7 +62,8 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
 
   dmat<-apply(df,2,unlist)
   print(dmat)
-  pheatmap(dmat,cellheight=10,cellwidth=10,main=paste(cancerType,'predictor AUC values'),filename=paste(cancerType,'min',minPat,'patientPredictorAUCvals.pdf',sep=''))
+  if(mean(dmat,na.rm=T)>0)	
+  	pheatmap(dmat,cellheight=10,cellwidth=10,main=paste(cancerType,'predictor AUC values'),filename=paste(cancerType,'min',minPat,'patientPredictorAUCvals.pdf',sep=''))
   write.table(df,quote=F,file=paste(cancerType,'min',minPat,'patientPredictorAUCvals.txt',sep=''),sep='\t')
 
 
@@ -81,7 +82,7 @@ genelist<-c("KRAS","SPRED1","NF1")
 getPredStats<-function(genelist){
     #make the cluster
 
-    res<-do.call('rbind',lapply(cl,list(names(tumsByDis)),function(ct,genelist){
+    res<-do.call('rbind',lapply(names(tumsByDis),function(ct,genelist){
         df<-crossGenePreds(genelist,cancerType=ct)
         print(paste('Finished',ct))
                                         #get offdiagonal predictions
