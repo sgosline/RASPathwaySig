@@ -14,7 +14,14 @@ dis.inds<-lapply(tumsByDis,function(x) which(expr.pats%in%toPatientId(x)))
 #' @param cancerType TCGA cancer abbreviation
 #' @param minPat number of patients to require in predictor
 crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
-  #iterate through the gene list
+                                        #iterate through the gene list
+    cl<-makeCluster(30,outfile='cluster.txt')
+    clusterExport(cl,"getMutDataForGene")
+    clusterExport(cl,"toPatientId")
+    clusterExport(cl,"alldat")
+    clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
+    clusterEvalQ(cl,library(pheatmap))
+
   df=do.call('rbind',lapply(genelist,function(g){
     ##get mutation data, including patients with mutation
     mutdata<-getMutDataForGene(g,FALSE,cancerType)
@@ -49,6 +56,7 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
     })
     return(genevals)
 }))
+           stopCluster(cl)
   rownames(df)<-paste("From",genelist)
   colnames(df)<-paste("To",genelist)
 
@@ -72,12 +80,8 @@ genelist<-c("KRAS","SPRED1","NF1")
 
 getPredStats<-function(genelist){
     #make the cluster
-    cl<-makeCluster(length(tumsByDis),outfile='cluster.txt')
-    clusterExport(cl,"crossGenePreds")
-    clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
-    clusterEvalQ(cl,library(pheatmap))
 
-    res<-do.call('rbind',parLapply(cl,list(names(tumsByDis)),function(ct,genelist){
+    res<-do.call('rbind',lapply(cl,list(names(tumsByDis)),function(ct,genelist){
         df<-crossGenePreds(genelist,cancerType=ct)
         print(paste('Finished',ct))
                                         #get offdiagonal predictions
@@ -89,7 +93,7 @@ getPredStats<-function(genelist){
 
     rownames(res)<-names(tumsByDis)
     write.table(res,file='pathwayStats.txt',sep='\t')
-    stopCluster(cl)
+
 }
 
 res<-getPredStats(genelist)
