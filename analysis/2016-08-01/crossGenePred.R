@@ -13,9 +13,9 @@ dis.inds<-lapply(tumsByDis,function(x) which(expr.pats%in%toPatientId(x)))
 #' @param genelist list of genes to compare across
 #' @param cancerType TCGA cancer abbreviation
 #' @param minPat number of patients to require in predictor
-crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
+crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=5){
                                         #iterate through the gene list
-    cl<-makeCluster(min(2,length(genelist)),outfile='cluster.txt')
+    cl<-makeCluster(min(30,length(genelist)),outfile='cluster.txt')
                                         #  clusterExport(cl,"getMutDataForGene")
     mutdata<<-getMutStatusByDisease(cancerType)
    # print(dim(mutdata))
@@ -90,12 +90,12 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
 
 genelist=c("RASA1","SPRED1","NF1","TP53","NRAS","KRAS","BRAF","EGFR","SHC1","GRB2","MAP2K1","MAP2K","CDK4","RB1","PAK1","SOS1","PTEN","AKT1","PDK1","MTOR")
 
-genelist<-c("KRAS","SPRED1","NF1")
+#genelist<-c("KRAS","SPRED1","NF1")
 
 getPredStats<-function(genelist){
     #make the cluster
     dlist<-names(tumsByDis)
-    dlist<-c("GBM","COAD")
+ #   dlist<-c("GBM","COAD")
     res<-do.call('rbind',lapply(dlist,function(ct,genelist){
         df<-crossGenePreds(genelist,cancerType=ct)
         print(paste('Finished',ct))
@@ -106,7 +106,7 @@ getPredStats<-function(genelist){
         return(stats)
     },genelist))
 
-    rownames(res)<-names(tumsByDis)
+    rownames(res)<-dlist
     write.table(res,file='pathwayStats.txt',sep='\t')
 
 }
