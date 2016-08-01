@@ -22,8 +22,9 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
     clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
     clusterEvalQ(cl,library(pheatmap))
     mudata<-getMutStatusByDisease(cancerType)
+    clusterExport(cl,'mutdata')
 
-  df=do.call('rbind',lapply(genelist,function(g,mutdata){
+  df=do.call('rbind',parLapply(cl,genelist,function(g,mutdata){
     ##get mutation data, including patients with mutation
     mutdata<-subset(mutdata,Gene==g)
     mut.pats=toPatientId(as.character(mutdata$Tumor))
