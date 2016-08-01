@@ -78,7 +78,7 @@ genelist<-c("KRAS","SPRED1","NF1")
 getPredStats<-function(genelist){
     #make the cluster
 
-    res<-do.call('rbind',lapply(cl,list(names(tumsByDis)),function(ct,genelist){
+    res<-do.call('rbind',lapply(list(names(tumsByDis)),function(ct,genelist){
         df<-crossGenePreds(genelist,cancerType=ct)
         print(paste('Finished',ct))
                                         #get offdiagonal predictions
