@@ -20,10 +20,10 @@ toPatientId<-function(vec){
 if(!exists('combinedMaf')){
   gpath<-synGet('syn4924181')@filePath
   df1.2.maf<-gsub('.gz','',gpath)
-  
+
   if(!file.exists(df1.2.maf))
     gunzip(gpath,remove=F)
-    
+
   combinedMaf<-as.data.frame(fread(df1.2.maf))
   combinedMaf$Patient<-toPatientId(combinedMaf$Tumor_Sample_Barcode)
 }
@@ -46,15 +46,24 @@ getTumorIdsFromMaf<-function(maffile){
 
 }
 
-getGeneStatusByDisease<-function(disname,gene='NF1'){
+
+getMutStatusByDisease<-function(disname){
     dpats<-unique(toPatientId(tumsByDis[[toupper(disname)]]))
   #  dpats<-dpats[which(names(dpats)!='PANCAN')]
     print(paste('Found',length(dpats),'samples for',disname))
     maftab<-combinedMaf[which(combinedMaf$Patient%in%dpats),]
-    genetab=maftab[which(maftab$Hugo_Symbol==gene),]
+    maftab$Disease<-rep(disname,nrow(maftab))
+    res<-select(maftab,match(c('Disease',"Hugo_Symbol",'Variant_Classification','PolyPhen','Tumor_Sample_Barcode','HGVSp'),colnames(maftab)))
+    colnames(res)<-c('Disease',"Gene",'VariantClassification','Score','Tumor','AAChange')
+    return(res)
+}
+
+getGeneStatusByDisease<-function(disname,gene='NF1'){
+    maftab<-getMutStatusByDisease(disname)
+    genetab=maftab[which(maftab$Gene==gene),]
     print(paste('Found',nrow(maftab),'entries for',disname,'and',nrow(genetab),'of those for',gene))
-    p<-ggplot(genetab)+
-      geom_bar(aes(Variant_Classification))
+  #  p<-ggplot(genetab)+
+  #    geom_bar(aes(Variant_Classification))
     return(genetab)
 }
 
@@ -80,12 +89,10 @@ getMutDataForGene<-function(geneName,plot=FALSE,cancerType=NA){
   }
   df<-do.call('rbind',lapply(cancerType,function(x){
     res<-getGeneStatusByDisease(x,geneName)
-    res$Disease<-rep(x,nrow(res))
-    res<-select(res,match(c('Disease','Variant_Classification','PolyPhen','Tumor_Sample_Barcode','HGVSp'),colnames(res)))
-    colnames(res)<-c('Disease','VariantClassification','Score','Tumor','AAChange')
+   # res$Disease<-rep(x,nrow(res))
     return(res)}))
 
- 
+
     #df<-data.frame(Disease=unlist(dis),VariantClassification=unlist(variant),Score=unlist(score),Tumor=unlist(tumor_id),AAChange=unlist(aa_change))
   if(plot){
     png(paste(geneName,'mutationstatus.png',sep=''))
