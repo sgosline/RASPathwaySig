@@ -15,7 +15,7 @@ dis.inds<-lapply(tumsByDis,function(x) which(expr.pats%in%toPatientId(x)))
 #' @param minPat number of patients to require in predictor
 crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
                                         #iterate through the gene list
-    cl<-makeCluster(30,outfile='cluster.txt')
+    cl<-makeCluster(min(30,length(genelist)),outfile='cluster.txt')
   #  clusterExport(cl,"getMutDataForGene")
     clusterExport(cl,"toPatientId")
     clusterExport(cl,"alldat")
