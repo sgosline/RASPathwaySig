@@ -21,7 +21,7 @@ crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
     clusterExport(cl,"alldat")
     clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
     clusterEvalQ(cl,library(pheatmap))
-    mudata<-getMutStatusByDisease(cancerType)
+    mutdata<-getMutStatusByDisease(cancerType)
     clusterExport(cl,'mutdata')
 
   df=do.call('rbind',parLapply(cl,genelist,function(g,mutdata){
