@@ -46,8 +46,8 @@ getTumorIdsFromMaf<-function(maffile){
 
 }
 
-
 getMutStatusByDisease<-function(disname){
+    print(disname)
     dpats<-unique(toPatientId(tumsByDis[[toupper(disname)]]))
   #  dpats<-dpats[which(names(dpats)!='PANCAN')]
     print(paste('Found',length(dpats),'samples for',disname))

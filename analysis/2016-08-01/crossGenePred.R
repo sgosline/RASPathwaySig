@@ -15,60 +15,77 @@ dis.inds<-lapply(tumsByDis,function(x) which(expr.pats%in%toPatientId(x)))
 #' @param minPat number of patients to require in predictor
 crossGenePreds<-function(genelist,cancerType='PANCAN',minPat=10){
                                         #iterate through the gene list
-    cl<-makeCluster(min(30,length(genelist)),outfile='cluster.txt')
-  #  clusterExport(cl,"getMutDataForGene")
-    clusterExport(cl,"toPatientId")
-    clusterExport(cl,"alldat")
+    cl<-makeCluster(min(2,length(genelist)),outfile='cluster.txt')
+                                        #  clusterExport(cl,"getMutDataForGene")
+    mutdata<<-getMutStatusByDisease(cancerType)
+   # print(dim(mutdata))
+    clusterExport(cl,list("toPatientId","mutdata","alldat"))
+#    clusterExport(cl,"alldat")
+    #exporting the whole source is too much, but might work after moving around some source commands
     clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
+#    clusterExport(cl,"model.build")
+#    clusterExport(cl,"model.pred")
     clusterEvalQ(cl,library(pheatmap))
-    mutdata<-getMutStatusByDisease(cancerType)
-    clusterExport(cl,'mutdata')
 
-  df=do.call('rbind',parLapply(cl,list(genelist),function(g,mutdata){
-    ##get mutation data, including patients with mutation
-    mutdata<-subset(mutdata,Gene==g)
-    mut.pats=toPatientId(as.character(mutdata$Tumor))
-    genevals=rep(0,length(genelist))
-    names(genevals)<-genelist
-          #get expression data
-    exprdata<-alldat
-    expr.pats<-toPatientId(colnames(exprdata)[-1])
 
-    mut.vec=rep('WT',length(expr.pats))
-    mut.vec[match(mut.pats,expr.pats)]<-'MUTANT'
-    mut.vec=factor(mut.vec,levels=c("WT","MUTANT"))
 
-    if(length(which(mut.vec=='MUTANT'))<minPat){
-      return(genevals)
+    dlist<-parLapply(cl,as.list(genelist),function(g,mutdata,genelist){
+        print(paste('Creating predictive model for',g,'across disease to run against',length(genelist),'other genes'))
+        ##get mutation data, including patients with mutation
+        gmuts<-subset(mutdata,Gene==g)
+        mut.pats=toPatientId(as.character(gmuts$Tumor))
+        genevals=rep(0,length(genelist))
+        names(genevals)<-genelist
+                                        #get expression data
+                                        #calculate expression data
+        exprdata<-alldat
+        expr.pats<-toPatientId(colnames(exprdata)[-1])
+
+                                        #create a factor vector to feed into predictive model
+        mut.vec=rep('WT',length(expr.pats))
+        mut.vec[match(mut.pats,expr.pats)]<-'MUTANT'
+        mut.vec=factor(mut.vec,levels=c("WT","MUTANT"))
+
+        if(length(which(mut.vec=='MUTANT'))>=minPat){
+#            print("Not enough mutants here, returning predictions of 0")
+#            return(genevals)
+
+                                        #build model, currently only elastic net
+        fit=model.build(exprdata,mut.vec,pref=g,doPlot=FALSE)
+
+        ##now use model to predict
+        genevals<-lapply(genelist,function(g2,mutdata,fit,exprdata){
+            other.muts<-subset(mutdata,Gene==g2)
+            print(paste('Found',nrow('other.muts'),'for',g2,'to assess predictions'))
+            other.mut.pats<-toPatientId(as.character(other.muts$Tumor))
+
+            other.vec<-rep("WT",length(expr.pats))
+            other.vec[match(other.mut.pats,expr.pats)]<-'MUTANT'
+            other.vec<-factor(other.vec,levels=c("WT","MUTANT"))
+            if(length(which(other.vec=='MUTANT'))<2)
+                return(0.0)
+            res=model.pred(fit,exprdata,other.vec,pref=paste(g,g2,sep='_to_'),doPlot=F)
+            return(res$AUC)
+        },mutdata,fit,exprdata)
     }
-    #build model
-    fit=model.build(exprdata,mut.vec,pref=g,doPlot=FALSE)
-
-    genevals<-lapply(genelist,function(g2){
-      other.muts<-subset(mutdata,Gene==g2)
-      other.mut.pats<-toPatientId(as.character(other.muts$Tumor))
-
-      other.vec<-rep("WT",length(expr.pats))
-      other.vec[match(other.mut.pats,expr.pats)]<-'MUTANT'
-      other.vec<-factor(other.vec,levels=c("WT","MUTANT"))
-      if(length(which(other.vec=='MUTANT'))<2)
-          return(0.0)
-      res=model.pred(fit,exprdata,other.vec,pref=paste(g,g2,sep='_to_'),doPlot=F)
-      return(res$AUC)
-    })
     return(genevals)
-}))
-           stopCluster(cl)
-  rownames(df)<-paste("From",genelist)
-  colnames(df)<-paste("To",genelist)
+    },mutdata,genelist)
 
-  dmat<-apply(df,2,unlist)
-  print(dmat)
-  pheatmap(dmat,cellheight=10,cellwidth=10,main=paste(cancerType,'predictor AUC values'),filename=paste(cancerType,'min',minPat,'patientPredictorAUCvals.pdf',sep=''))
-  write.table(df,quote=F,file=paste(cancerType,'min',minPat,'patientPredictorAUCvals.txt',sep=''),sep='\t')
+    df=do.call('rbind',dlist)
 
-  return(df)
+   # print(df)
+    stopCluster(cl)
+    rownames(df)<-paste("From",genelist)
+    colnames(df)<-paste("To",genelist)
 
+    dmat<-apply(df,2,unlist)
+                                        #    print(dmat)
+    if(mean(dmat,na.rm=T)!=0){
+        pheatmap(dmat,cellheight=10,cellwidth=10,main=paste(cancerType,'predictor AUC values'),filename=paste(cancerType,'min',minPat,'patientPredictorAUCvals.pdf',sep=''))
+    }
+    write.table(df,quote=F,file=paste(cancerType,'min',minPat,'patientPredictorAUCvals.txt',sep=''),sep='\t')
+
+    return(df)
 }
 
 genelist=c("RASA1","SPRED1","NF1","TP53","NRAS","KRAS","BRAF","EGFR","SHC1","GRB2","MAP2K1","MAP2K","CDK4","RB1","PAK1","SOS1","PTEN","AKT1","PDK1","MTOR")
@@ -77,8 +94,9 @@ genelist<-c("KRAS","SPRED1","NF1")
 
 getPredStats<-function(genelist){
     #make the cluster
-
-    res<-do.call('rbind',lapply(list(names(tumsByDis)),function(ct,genelist){
+    dlist<-names(tumsByDis)
+    dlist<-c("GBM","COAD")
+    res<-do.call('rbind',lapply(dlist,function(ct,genelist){
         df<-crossGenePreds(genelist,cancerType=ct)
         print(paste('Finished',ct))
                                         #get offdiagonal predictions

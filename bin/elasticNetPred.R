@@ -1,9 +1,5 @@
 ##begin to do elastic net predictions of kras, braf, nras in TCGA data.
 
-##first get mutational data for each
-source("../../bin/TcgaExpressionData.R")
-source("../../bin/TcgaMutationalData.R")
-
 ##now submit model to do predictions
 library(glmnet)
 library(ggplot2)
@@ -18,33 +14,33 @@ model.build<-function(exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
     print(paste("Less than 1 mutants in patient data for",pref))
     return(NULL)
   }
-  
+
   ##create model and identifier predictive genes
-  cvfit<-cv.glmnet(x=t(exprdata[,-1]),y=as.factor(mut.vec), 
+  cvfit<-cv.glmnet(x=t(exprdata[,-1]),y=as.factor(mut.vec),
                    family='binomial',type='auc',alpha=alpha)
-  
+
   if(doPlot){
     png(paste('cvEnetModelFor',pref,'.png',sep=''))
     plot(cvfit)
     dev.off()
   }
   return(cvfit)
-  
+
 }
 
 model.pred<-function(cvfit,exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
-  
+
   #extract information and predict
   minlambda=cvfit$lambda.min
-  
+
   coeffs=coef(cvfit, s = "lambda.min")
-  
+
   auc.val=0
   pfit<-NULL
    try(pfit <- predict(cvfit,t(exprdata[,-1]),s=minlambda,type="response"))
   if(is.null(pfit))
 	return(auc.val)
-  
+
   df<-data.frame(Prediction=pfit[,1],MutationStatus=mut.vec)
   ##plot predicted scores of MT vs WT
   if(doPlot){
@@ -54,9 +50,9 @@ model.pred<-function(cvfit,exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
     print(p)
     dev.off()
   }
-  
+
   try(auc.val<-auc(roc(MutationStatus~Prediction,df)))
-  
+
   return(list(Response=df,Coeff=coeffs,AUC=auc.val))
 }
 
@@ -64,17 +60,17 @@ buildModelFromData<-function(exprdata,mutdata,pref='',alpha=0.1,doPlot=TRUE,doKf
   #calculate ground truth in mutation data
   mut.pats=toPatientId(as.character(mutdata$Tumor))
   expr.pats<-toPatientId(colnames(exprdata)[-1])
-  
+
   mut.vec=rep('WT',length(expr.pats))
   mut.vec[match(mut.pats,expr.pats)]<-'MUTANT'
-  
+
   #build model
   fit=model.build(exprdata,mut.vec,pref,alpha,doPlot)
   res=model.pred(fit,exprdata,mut.vec,pref,alpha,doPlot)
   df=res$Response
   coeffs=res$Coeff
   #predict
-    #also, which genes are nz in model? 
+    #also, which genes are nz in model?
   genes<-exprdata[which(coeffs[,1]>0),1]
   gn<-sapply(as.character(genes),function(x) unlist(strsplit(x,split='|',fixed=T))[1])
   write(gn,file=paste('genesInPredictorFor',pref,'.txt',sep=''))
@@ -86,7 +82,7 @@ crossVal<-function(exprdata,mutdata,prefix='',alpha=0.1,k=10){
   #calculate ground truth in mutation data
   mut.pats=toPatientId(as.character(mutdata$Tumor))
   expr.pats<-toPatientId(colnames(exprdata)[-1])
-  
+
   mut.vec=rep('WT',length(expr.pats))
   mut.vec[match(mut.pats,expr.pats)]<-'MUTANT'
   if(length(which(mut.vec=='MUTANT'))<10){
@@ -98,29 +94,34 @@ crossVal<-function(exprdata,mutdata,prefix='',alpha=0.1,k=10){
     y=c(1,1+x)
     test.dat<-exprdata[,y]
     test.mut<-mut.vec[x]
-    
+
     train.dat<-cbind(exprdata[,1],exprdata[,-y])
     train.mut<-mut.vec[-x]
-    
+
     mod=model.build(train.dat,train.mut,alpha=alpha,doPlot=FALSE)
     if(is.null(mod))
       return(NA)
-    
+
     pred=model.pred(mod,test.dat,test.mut,alpha=alpha,doPlot=FALSE)
-    auc.val=pred$AUC    
+    auc.val=pred$AUC
     return(auc.val)
   })
   return(mean(rocs,na.rm=T))
 }
 
 doPanCancer<-function(){
-  ##Now run the test: 
+    ##first get mutational data for each
+    source("../../bin/TcgaExpressionData.R")
+    source("../../bin/TcgaMutationalData.R")
+
+
+  ##Now run the test:
   #1 for all three set  s, all mutations
   nras.all.genes<-buildModelFromData(alldat,nras.mut,'nras.all')
   kras.all.genes<-buildModelFromData(alldat,kras.mut,'kras.all')
   braf.all.genes<-buildModelFromData(alldat,braf.mut,'braf.all')
 
-  #2 for all three sets, missense or nonsense only. 
+  #2 for all three sets, missense or nonsense only.
   nras.ms.ns<-subset(nras.mut,VariantClassification%in%c('Missense_Mutation','Nonsense_Mutation'))
   nras.genes<-buildModelFromData(alldat,nras.ms.ns,'nras.missense_nonsense')
   kras.ms.ns<-subset(kras.mut,VariantClassification%in%c('Missense_Mutation','Nonsense_Mutation'))
@@ -130,6 +131,11 @@ doPanCancer<-function(){
 }
 
 doPanDisease<-function(alpha=0.01,doPlot=TRUE){
+    ##first get mutational data for each
+    source("../../bin/TcgaExpressionData.R")
+    source("../../bin/TcgaMutationalData.R")
+
+
   #3 break down by disease, all mutations
   expr.pats<-toPatientId(colnames(alldat))
 
@@ -156,13 +162,16 @@ doPanDisease<-function(alpha=0.01,doPlot=TRUE){
 }
 
 getDiseaseAUC<-function(alpha=0.1,k=10){
+      source("../../bin/TcgaExpressionData.R")
+    source("../../bin/TcgaMutationalData.R")
+
   #3 break down by disease, all mutations
   expr.pats<-toPatientId(colnames(alldat))
-  
+
   ##TODO: get better list of tumors by disease.
   tbd=tumsByDis[which(names(tumsByDis)!='PANCAN')]
   dis.inds<-lapply(tbd,function(x) which(expr.pats%in%toPatientId(x)))
-  
+
   res.auc<-sapply(names(dis.inds),function(x){
     inds<-dis.inds[[x]]
     if(length(inds)<50){
@@ -182,23 +191,24 @@ getDiseaseAUC<-function(alpha=0.1,k=10){
 
 ##copy confusion matrix code from 2015/12/22
 buildConfMatrix<-function(mutdata=kras.mut,gene='KRAS',alpha=0.1){
-  
+    source("../../bin/TcgaExpressionData.R")
+    source("../../bin/TcgaMutationalData.R")
   ##get all patients iwth mutations in the gene of interest
   mut.pats=toPatientId(as.character(mutdata$Tumor))
-  
+
   #for(i in names(dis.inds)){
   pred.mat<-sapply(names(dis.inds),function(i){
     mod.inds=dis.inds[[i]]
     #get expression values
     mod.exp<-cbind(as.character(alldat[,1]),alldat[,mod.inds])
     expr.pats<-toPatientId(colnames(mod.exp)[-1])
-    
+
     ##get mutation values
     mod.mut<-rep('WT',length(mod.inds))
     mod.mut[match(mut.pats,expr.pats)]<-'MUTANT'
     #if(length(which(mod.mut=='MUTANT'))<1){
-    
-    
+
+
     mod.fit=NULL
     try(mod.fit<-model.build(mod.exp,mod.mut,alpha=alpha,doPlot=FALSE))
     if(is.null(mod.fit)){
@@ -212,19 +222,19 @@ buildConfMatrix<-function(mutdata=kras.mut,gene='KRAS',alpha=0.1){
       test.inds=dis.inds[[j]]
       test.exp=cbind(as.character(alldat[,1]),alldat[,test.inds])
       test.pats<-toPatientId(colnames(test.exp)[-1])
-      
+
       test.mut=rep('WT',length(test.inds))
       test.mut[match(mut.pats,test.pats)]<-'MUTANT'
       pred=model.pred(mod.fit,test.exp,test.mut,alpha=alpha,doPlot=FALSE)
       print(paste('AUC of',j,'data from',i,'model:',pred$AUC))
-      
+
       return(pred$AUC)
     })
     names(pred.row)<-paste('TO',names(pred.row))
     return(pred.row)
   })
   colnames(pred.mat)<-paste('FROM',colnames(pred.mat))
-  
+
   na.cols=which(apply(pred.mat,2,function(x) all(is.na(x))))
   if(length(na.cols)>0)
     nmat<-pred.mat[,-na.cols]
@@ -235,28 +245,29 @@ buildConfMatrix<-function(mutdata=kras.mut,gene='KRAS',alpha=0.1){
   return(nmat)
 }
 
-##this is similar to the confusion matrix for each disease, but instead focuses on the 
+##this is similar to the confusion matrix for each disease, but instead focuses on the
 ##Average within-disease AUC for various genes
 buildCrossGeneMatrix<-function(mutdata,exprdata,genelist=c("KRAS","NRAS","NF1","TP53"),dis.name='GBM',alpha=0.1){
   ##mutdata- list of per-patint
-  
+
+    source("../../bin/TcgaMutationalData.R")
   gene.res<-sapply(genelist,function(gene){
     ##get mutdata
         ##get all patients iwth mutations in the gene of interest
     mut.pats=toPatientId(as.character(mutdata$Tumor))
-  
+
   mod.inds=dis.inds[[dis.name]]
   #get expression values
   mod.exp<-cbind(as.character(alldat[,1]),alldat[,mod.inds])
   expr.pats<-toPatientId(colnames(mod.exp)[-1])
-    
+
   ##get mutation values
   mod.mut<-rep('WT',length(mod.inds))
   mod.mut[match(mut.pats,expr.pats)]<-'MUTANT'
-  
+
   #if(length(which(mod.mut=='MUTANT'))<1){
-    
-    
+
+
   mod.fit=NULL
   try(mod.fit<-model.build(mod.exp,mod.mut,alpha=alpha,doPlot=FALSE))
   if(is.null(mod.fit)){
@@ -270,19 +281,19 @@ buildCrossGeneMatrix<-function(mutdata,exprdata,genelist=c("KRAS","NRAS","NF1","
       test.inds=dis.inds[[j]]
       test.exp=cbind(as.character(alldat[,1]),alldat[,test.inds])
       test.pats<-toPatientId(colnames(test.exp)[-1])
-      
+
       test.mut=rep('WT',length(test.inds))
       test.mut[match(mut.pats,test.pats)]<-'MUTANT'
       pred=model.pred(mod.fit,test.exp,test.mut,alpha=alpha,doPlot=FALSE)
       print(paste('AUC of',j,'data from',i,'model:',pred$AUC))
-      
+
       return(pred$AUC)
     })
     names(pred.row)<-paste('TO',names(pred.row))
     return(pred.row)
   })
   colnames(pred.mat)<-paste('FROM',colnames(pred.mat))
-  
+
   na.cols=which(apply(pred.mat,2,function(x) all(is.na(x))))
   if(length(na.cols)>0)
     nmat<-pred.mat[,-na.cols]
@@ -292,4 +303,3 @@ buildCrossGeneMatrix<-function(mutdata,exprdata,genelist=c("KRAS","NRAS","NF1","
   pheatmap(nmat,cluster_rows=F,cluster_cols=F,cellwidth=10,cellheight=10,main=paste('AUC for',gene,'mutants'),file=paste(gene,'AUCVals.png',sep=''))
   return(nmat)
 }
-
