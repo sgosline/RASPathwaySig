@@ -78,6 +78,8 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
     profile=rnaseqs[zscores]
     if(!getZscores)
       profile=rnaseqs[-zscores]
+    if(length(profile)>1)
+      profile=profile[grep('v2',profile)]
     mrnaSamps=caseLists$case_list_id[grep('rna_seq',caseLists$case_list_id)]
     gene.groups=split(all.genes, ceiling(seq_along(all.genes)/500))
     dat<-lapply(gene.groups,function(g) getProfileData(mycgds,g,profile,mrnaSamps))

@@ -1,4 +1,4 @@
- source("../../bin/elasticNetPred.R")
+source("../../bin/elasticNetPred.R")
 library(pheatmap)
 require(parallel)
 source("../../bin/cBioPortalData.R")
