@@ -136,5 +136,5 @@ getCclePredStats<-function(genelist){
 }
 
 #res<-crossGenePreds(genelist,'PANCAN')
-res1<-getTcgaPredStats(genelist)
-#res2<-getCclePredStats(genelist)
+#res1<-getTcgaPredStats(genelist)
+res2<-getCclePredStats(genelist)
