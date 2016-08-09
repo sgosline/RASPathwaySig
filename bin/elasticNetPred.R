@@ -16,7 +16,8 @@ model.build<-function(exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
   }
 
   ##create model and identifier predictive genes
-  cvfit<-cv.glmnet(x=t(exprdata[,-1]),y=as.factor(mut.vec),
+  #cvfit<-cv.glmnet(x=t(exprdata[,-1]),y=as.factor(mut.vec),
+  cvfit<-cv.glmnet(x=t(exprdata),y=as.factor(mut.vec),
                    family='binomial',type='auc',alpha=alpha)
 
   if(doPlot){
@@ -37,7 +38,8 @@ model.pred<-function(cvfit,exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
 
   auc.val=0
   pfit<-NULL
-   try(pfit <- predict(cvfit,t(exprdata[,-1]),s=minlambda,type="response"))
+#   try(pfit <- predict(cvfit,t(exprdata[,-1]),s=minlambda,type="response"))
+  try(pfit <- predict(cvfit,t(exprdata),s=minlambda,type="response"))
   if(is.null(pfit))
 	return(auc.val)
 
