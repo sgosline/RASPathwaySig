@@ -3,8 +3,6 @@ library(pheatmap)
 require(parallel)
 source("../../bin/cBioPortalData.R")
  
- 
- 
 
 #'Get AUC values by predicting from one mutation to another
 #' @param genelist list of genes to compare across
@@ -40,9 +38,10 @@ crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',m
         mut.vec[gmuts]<-'MUTANT'
         mut.vec=factor(mut.vec,levels=c("WT","MUTANT"))
 
-        if(length(which(mut.vec=='MUTANT'))>=minPat){
+        if(length(which(mut.vec=='MUTANT'))<=minPat){
             print("Not enough mutants here, returning predictions of 0")
             return(genevals)
+        }
 
                                         #build model, currently only elastic net
         fit=model.build(exprMatrix,mut.vec,pref=g,doPlot=FALSE)

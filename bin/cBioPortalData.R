@@ -29,7 +29,7 @@ getDisMutationData<-function(dis='',study='tcga'){
     return(NULL)
   mycancerstudy<-all.studies$cancer_study_id[ind]
   expr.list<-lapply(mycancerstudy,function(cs){
-    print(cs)
+    print(paste(cs,study,'Mutation data'))
     caseLists<-getCaseLists(mycgds,cs)
     allprofs<-getGeneticProfiles(mycgds,cs)[,1]
     profile=allprofs[grep('mutations',allprofs)]
@@ -70,7 +70,7 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
   
   mycancerstudy<-all.studies$cancer_study_id[ind]
   expr.list<-lapply(mycancerstudy,function(cs){
-    print(cs)
+    print(paste(cs,study,'Expression data'))
     caseLists<-getCaseLists(mycgds,cs)
     allprofs<-getGeneticProfiles(mycgds,cs)[,1]
     rnaseqs<-allprofs[grep('rna_seq',allprofs)]
