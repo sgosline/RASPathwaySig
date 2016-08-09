@@ -10,7 +10,7 @@ source("../../bin/cBioPortalData.R")
 #' @param genelist list of genes to compare across
 #' @param cancerType TCGA cancer abbreviation
 #' @param minPat number of patients to require in predictor
-crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',minPat=5){
+crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',minPat=3){
                                         #iterate through the gene list
     cl<-makeCluster(min(10,length(genelist)),outfile='cluster.txt')
                                         #  clusterExport(cl,"getMutDataForGene")
@@ -28,7 +28,7 @@ crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',m
         gmuts<-which(rownames(mutMatrix)==g)
         genevals=rep(0,length(genelist))
         names(genevals)<-genelist
-        
+        print(paste('Found',length(gmuts),'samples with mutated',g))
         mut.vec=rep('WT',ncol(exprMatrix))
         
                                         #create a factor vector to feed into predictive model
@@ -47,6 +47,8 @@ crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',m
           othermuts<-which(rownames(mutMatrix)==g2)
           genevals=rep(0,length(genelist))
           names(genevals)<-genelist
+          
+          print(paste('Found',length(othermuts),'samples with mutated',g2))
           
           other.vec=rep('WT',ncol(exprMatrix))
           
@@ -71,7 +73,7 @@ crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',m
     colnames(df)<-paste("To",genelist)
 
     dmat<-apply(df,2,unlist)
-                                        #    print(dmat)
+    print(dmat)
     if(mean(dmat,na.rm=T)!=0){
         pheatmap(dmat,cellheight=10,cellwidth=10,main=paste(ifelse(cancerType=='','All',cancerType),prefix,'predictor AUC values'),filename=paste(cancerType,'min',minPat,'patientPredictorAUCvals.pdf',sep=''))
     }
@@ -135,4 +137,4 @@ getCclePredStats<-function(genelist){
 
 #res<-crossGenePreds(genelist,'PANCAN')
 res1<-getTcgaPredStats(genelist)
-res2<-getCclePredStats(genelist)
+#res2<-getCclePredStats(genelist)
