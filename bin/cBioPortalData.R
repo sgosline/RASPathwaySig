@@ -81,7 +81,7 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
     if(length(profile)>1)
       profile=profile[grep('v2',profile)]
     mrnaSamps=caseLists$case_list_id[grep('rna_seq',caseLists$case_list_id)]
-    if(length(mranSamps)>1)
+    if(length(mrnaSamps)>1)
       mrnaSamps=mrnaSamps[grep('v2',mrnaSamps)]
     gene.groups=split(all.genes, ceiling(seq_along(all.genes)/500))
     dat<-lapply(gene.groups,function(g) getProfileData(mycgds,g,profile,mrnaSamps))
