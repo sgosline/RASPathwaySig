@@ -154,7 +154,7 @@ getCcleMutationData<-function(tiss=''){
   caseLists<-getCaseLists(mycgds,mycancerstudy)
   mutSamps<-caseLists$case_list_id[grep("sequenced",caseLists[,1])]
   gene.groups=split(all.genes, ceiling(seq_along(all.genes)/500))
-  dat<-lapply(gene.groups,function(g) getGeneticProfileData(mycgds,g,profile,mutSamps))
+  dat<-lapply(gene.groups,function(g) getProfileData(mycgds,g,profile,mutSamps))
   
   ddat<-matrix()
   for(i in which(sapply(dat,nrow)!=0)){
