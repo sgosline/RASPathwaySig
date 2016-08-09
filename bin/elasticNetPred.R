@@ -14,7 +14,7 @@ model.build<-function(exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
     print(paste("Less than 1 mutants in patient data for",pref))
     return(NULL)
   }
-
+  exprdata[which(is.na(exprdata,arr.ind=T))]<-0.0
   ##create model and identifier predictive genes
   #cvfit<-cv.glmnet(x=t(exprdata[,-1]),y=as.factor(mut.vec),
   cvfit<-cv.glmnet(x=t(exprdata),y=as.factor(mut.vec),
