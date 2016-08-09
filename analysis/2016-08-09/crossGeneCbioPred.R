@@ -28,15 +28,16 @@ crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',m
         gr<-which(rownames(mutMatrix)==g)
         genevals=rep(0,length(genelist))
         names(genevals)<-genelist
-        if(length(gr)>0)
+        if(length(gr)>0){
           gmuts<-which(mutMatrix[gr,])
-        else
+        }else{
           gmuts<-c()
+        }
         print(paste('Found',length(gmuts),'samples with mutated',g))
         mut.vec=rep('WT',ncol(exprMatrix))
         
                                         #create a factor vector to feed into predictive model
-        mut.vec[which(mutMatrix[gmuts,])]<-'MUTANT'
+        mut.vec[gmuts]<-'MUTANT'
         mut.vec=factor(mut.vec,levels=c("WT","MUTANT"))
 
         if(length(which(mut.vec=='MUTANT'))>=minPat){
