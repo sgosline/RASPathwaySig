@@ -25,9 +25,13 @@ crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',m
     dlist<-parLapply(cl,as.list(genelist),function(g,genelist){
         print(paste('Creating predictive model for',g,'across disease to run against',length(genelist),'other genes'))
         ##get mutation data, including patients with mutation
-        gmuts<-which(rownames(mutMatrix)==g)
+        gr<-which(rownames(mutMatrix)==g)
         genevals=rep(0,length(genelist))
         names(genevals)<-genelist
+        if(length(gr)>0)
+          gmuts<-which(mutMatrix[gr,])
+        else
+          gmuts<-c()
         print(paste('Found',length(gmuts),'samples with mutated',g))
         mut.vec=rep('WT',ncol(exprMatrix))
         
