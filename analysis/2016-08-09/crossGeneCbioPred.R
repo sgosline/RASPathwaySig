@@ -65,7 +65,7 @@ crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',m
           res=model.pred(fit,exprMatrix,other.vec,pref=paste(g,g2,sep='_to_'),doPlot=F)
             return(res$AUC)
         },mutMatrix,fit,exprMatrix)
-    }
+    
     return(genevals)
     },genelist)
 
