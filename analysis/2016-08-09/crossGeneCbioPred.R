@@ -10,17 +10,16 @@ source("../../bin/cBioPortalData.R")
 #' @param minPat number of patients to require in predictor
 crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',minPat=3){
                                         #iterate through the gene list
-    cl<-makeCluster(min(10,length(genelist)),outfile='cluster.txt')
+    cl<-makeCluster(min(2,length(genelist)),outfile='cluster.txt')
                                         #  clusterExport(cl,"getMutDataForGene")
 
-   # print(dim(mutdata))
-    clusterExport(cl,list("mutMatrix","exprMatrix"))
+    clusterExport(cl,list("mutMatrix","exprMatrix","minPat","genelist"))
 #    clusterExport(cl,"alldat")
     #exporting the whole source is too much, but might work after moving around some source commands
     clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
     clusterEvalQ(cl,library(pheatmap))
 
-    dlist<-parLapply(cl,as.list(genelist),function(g,genelist){
+    dlist<-parLapply(cl,as.list(genelist),function(g){
         print(paste('Creating predictive model for',g,'across disease to run against',length(genelist),'other genes'))
         ##get mutation data, including patients with mutation
         gr<-which(rownames(mutMatrix)==g)
@@ -48,16 +47,21 @@ crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',m
 
         ##now use model to predict
         genevals<-lapply(genelist,function(g2,mutMatrix,fit,exprMatrix){
-          othermuts<-which(rownames(mutMatrix)==g2)
+          or<-which(rownames(mutMatrix)==g2)
           genevals=rep(0,length(genelist))
           names(genevals)<-genelist
           
+          if(length(or)>0){
+            othermuts<-which(mutMatrix[or,])
+          }else{
+            othermuts<-c()
+          }
           print(paste('Found',length(othermuts),'samples with mutated',g2))
           
           other.vec=rep('WT',ncol(exprMatrix))
           
           #create a factor vector to feed into predictive model
-          other.vec[which(mutMatrix[gmuts,])]<-'MUTANT'
+          other.vec[othermuts]<-'MUTANT'
           other.vec=factor(other.vec,levels=c("WT","MUTANT"))
           
           if(length(which(other.vec=='MUTANT'))<2)
@@ -65,9 +69,9 @@ crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',m
           res=model.pred(fit,exprMatrix,other.vec,pref=paste(g,g2,sep='_to_'),doPlot=F)
             return(res$AUC)
         },mutMatrix,fit,exprMatrix)
-    
+    names(genevals)<-genelist
     return(genevals)
-    },genelist)
+    })
 
     df=do.call('rbind',dlist)
 
@@ -99,10 +103,10 @@ getTcgaPredStats<-function(genelist){
     dlist<-tcga.list
     #make the cluster
     res<-do.call('rbind',lapply(dlist,function(ct,genelist){
-      mutdata<<-getDisMutationData(ct)
-      exprdata<<-getDisExpressionData(ct)
+      mutdata<-getDisMutationData(ct)
+      exprdata<-getDisExpressionData(ct)
       compats<-intersect(colnames(mutdata),colnames(exprdata))
-        df<-crossGenePreds(genelist,mutMatrix=mutdata[,compats],exprMatrix=exprdata[,compats],cancerType=ct,prefix='tcga')
+        df<-crossGenePreds(genelist,mutdata[,compats],exprdata[,compats],cancerType=ct,prefix='tcga')
         print(paste('Finished',ct))
                                         #get offdiagonal predictions
         ndmat<-apply(df,2,unlist)*1-diag(nrow(df))
@@ -122,8 +126,8 @@ getCclePredStats<-function(genelist){
   dlist<-ccle.list
   #make the cluster
   res<-do.call('rbind',lapply(dlist,function(ct,genelist){
-    mutdata<<-getCcleMutationData(ct)
-    exprdata<<-getCcleExpressionData(ct)
+    mutdata<-getCcleMutationData(ct)
+    exprdata<-getCcleExpressionData(ct)
     compats<-intersect(colnames(mutdata),colnames(exprdata))
     df<-crossGenePreds(genelist,mutMatrix=mutdata[,compats],exprMatrix=exprdata[,compats],cancerType=ct,prefix='ccle')
     print(paste('Finished',ct))
@@ -140,5 +144,5 @@ getCclePredStats<-function(genelist){
 }
 
 #res<-crossGenePreds(genelist,'PANCAN')
-res1<-getTcgaPredStats(genelist)
-res2<-getCclePredStats(genelist)
+#res1<-getTcgaPredStats(genelist)
+#res2<-getCclePredStats(genelist)

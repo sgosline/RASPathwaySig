@@ -7,7 +7,7 @@ library(pROC)
 library(caret)
 
 
-##create special build/pred results
+#'Build model from data
 model.build<-function(exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
 
   if(length(which(mut.vec=='MUTANT'))<1){
@@ -15,6 +15,7 @@ model.build<-function(exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
     return(NULL)
   }
   exprdata[which(is.na(exprdata),arr.ind=T)]<-0.0
+  
   ##create model and identifier predictive genes
   #cvfit<-cv.glmnet(x=t(exprdata[,-1]),y=as.factor(mut.vec),
   cvfit<-cv.glmnet(x=t(exprdata),y=as.factor(mut.vec),
@@ -29,6 +30,7 @@ model.build<-function(exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
 
 }
 
+#'predict model from fit
 model.pred<-function(cvfit,exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
 
   #extract information and predict
@@ -43,7 +45,7 @@ model.pred<-function(cvfit,exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
 #   try(pfit <- predict(cvfit,t(exprdata[,-1]),s=minlambda,type="response"))
   try(pfit <- predict(cvfit,t(exprdata),s=minlambda,type="response"))
   if(is.null(pfit))
-	return(auc.val)
+	  return(auc.val)
 
   df<-data.frame(Prediction=pfit[,1],MutationStatus=mut.vec)
   ##plot predicted scores of MT vs WT
