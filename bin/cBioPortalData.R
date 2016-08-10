@@ -65,9 +65,10 @@ getDisMutationData<-function(dis='',study='tcga'){
 getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
   #if disease is blank will get all diseases
   ind=grep(paste(tolower(dis),study,sep='_'),all.studies$cancer_study_id)
-  if(length(ind)==0)
-    return(NULL)
   
+  if(length(ind)==0){
+    return(NULL)
+  }
   mycancerstudy<-all.studies$cancer_study_id[ind]
   expr.list<-lapply(mycancerstudy,function(cs){
     print(paste(cs,study,'Expression data'))
