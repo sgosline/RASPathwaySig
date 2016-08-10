@@ -13,12 +13,15 @@ crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',m
     cl<-makeCluster(min(10,length(genelist)),outfile='cluster.txt')
                                         #  clusterExport(cl,"getMutDataForGene")
 
-    clusterExport(cl,list("mutMatrix","exprMatrix","minPat","genelist"))
+    clusterExport(cl,"mutMatrix")
+    clusterExport(cl,"exprMatrix")
+    clusterExport(cl,"minPat")
+    clusterExport(cl,"genelist")
     #exporting the whole source is too much, but might work after moving around some source commands
     clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
     clusterEvalQ(cl,library(pheatmap))
 
-    dlist<-parLapply(cl,as.list(genelist),function(g,mutMatrix,exprMatrix,minPat,genelist){
+    dlist<-parLapply(cl,as.list(genelist),function(g){
     # dlist<-lapply(genelist,function(g){
         print(paste('Creating predictive model for',g,'across disease to run against',length(genelist),'other genes'))
         ##get mutation data, including patients with mutation
@@ -71,7 +74,7 @@ crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',m
         },mutMatrix,fit,exprMatrix)
     names(genevals)<-genelist
     return(genevals)
-    },mutMatrix,exprMatrix,minPat,genelist)
+    })
 
     df=do.call('rbind',dlist)
 
@@ -107,7 +110,7 @@ getTcgaPredStats<-function(genelist){
       exprdata<-getDisExpressionData(ct)
       compats<-intersect(colnames(mutdata),colnames(exprdata))
       print(paste("Found",length(compats),'patients with expression and mutation data for',ct))
-        df<-crossGenePreds(genelist,mutdata[,compats],exprdata[,compats],cancerType=ct,prefix='tcga')
+        df<-crossGenePreds(genelist,mutMatrix=mutdata[,compats],exprMatrix=exprdata[,compats],cancerType=ct,prefix='tcga')
         print(paste('Finished',ct))
                                         #get offdiagonal predictions
         ndmat<-apply(df,2,unlist)*1-diag(nrow(df))
