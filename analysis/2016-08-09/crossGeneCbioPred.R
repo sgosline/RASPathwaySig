@@ -18,7 +18,7 @@ crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',m
     clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
     clusterEvalQ(cl,library(pheatmap))
 
-    dlist<-parLapply(cl,as.list(genelist),function(g){
+    dlist<-parLapply(cl,as.list(genelist),function(g,mutMatrix,exprMatrix,minPat,genelist){
     # dlist<-lapply(genelist,function(g){
         print(paste('Creating predictive model for',g,'across disease to run against',length(genelist),'other genes'))
         ##get mutation data, including patients with mutation
@@ -71,7 +71,7 @@ crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',m
         },mutMatrix,fit,exprMatrix)
     names(genevals)<-genelist
     return(genevals)
-    })
+    },mutMatrix,exprMatrix,minPat,genelist)
 
     df=do.call('rbind',dlist)
 
