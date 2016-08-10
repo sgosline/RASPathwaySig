@@ -23,8 +23,11 @@ tcga.cancer.types<-c('laml','acc','blca','lgg','brca','cesc','chol','coadread','
 cell.line.tiss<-c('CENTRAL_NERVOUS_SYSTEM','BONE','PROSTATE','STOMACH','URINARY_TRACT','OVARY','HAEMATOPOIETIC_AND_LYMPHOID_TISSUE','KIDNEY','THYROID','SKIN','SOFT_TISSUE','SALIVARY_GLAND','LUNG','PLEURA','LIVER','ENDOMETRIUM','PANCREAS','BREAST','UPPER_AERODIGESTIVE_TRACT','LARGE_INTESTINE','AUTONOMIC_GANGLIA','OESOPHAGUS','BILIARY_TRACT','SMALL_INTESTINE')
 
 getDisMutationData<-function(dis='',study='tcga'){
+  
   #if disease is blank will get all diseases
   ind=grep(paste(tolower(dis),study,sep='_'),all.studies$cancer_study_id)
+  print(paste('found',length(ind),study,'samples for disease',dis))
+  
   if(length(ind)==0)
     return(NULL)
   mycancerstudy<-all.studies$cancer_study_id[ind]
@@ -65,10 +68,11 @@ getDisMutationData<-function(dis='',study='tcga'){
 getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
   #if disease is blank will get all diseases
   ind=grep(paste(tolower(dis),study,sep='_'),all.studies$cancer_study_id)
-  
+  print(paste('found',length(ind),study,'samples for disease',dis))
   if(length(ind)==0){
     return(NULL)
   }
+  
   mycancerstudy<-all.studies$cancer_study_id[ind]
   expr.list<-lapply(mycancerstudy,function(cs){
     print(paste(cs,study,'Expression data'))

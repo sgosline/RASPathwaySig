@@ -10,16 +10,16 @@ source("../../bin/cBioPortalData.R")
 #' @param minPat number of patients to require in predictor
 crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',minPat=3){
                                         #iterate through the gene list
-    cl<-makeCluster(min(2,length(genelist)),outfile='cluster.txt')
+    cl<-makeCluster(min(10,length(genelist)),outfile='cluster.txt')
                                         #  clusterExport(cl,"getMutDataForGene")
 
     clusterExport(cl,list("mutMatrix","exprMatrix","minPat","genelist"))
-#    clusterExport(cl,"alldat")
     #exporting the whole source is too much, but might work after moving around some source commands
     clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
     clusterEvalQ(cl,library(pheatmap))
 
     dlist<-parLapply(cl,as.list(genelist),function(g){
+    # dlist<-lapply(genelist,function(g){
         print(paste('Creating predictive model for',g,'across disease to run against',length(genelist),'other genes'))
         ##get mutation data, including patients with mutation
         gr<-which(rownames(mutMatrix)==g)
@@ -100,7 +100,7 @@ ccle.list<-c("","BREAST","HAEMATOPOIETIC_AND_LYMPHOID_TISSUE","LUNG","SKIN","CEN
 
 getTcgaPredStats<-function(genelist){
     #TODO still need to get list of cancer types
-    dlist<-tcga.list
+    dlist<-rev(tcga.list)
     #make the cluster
     res<-do.call('rbind',lapply(dlist,function(ct,genelist){
       mutdata<-getDisMutationData(ct)
