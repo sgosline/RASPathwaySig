@@ -55,11 +55,11 @@ getDisMutationData<-function(dis='',study='tcga'){
     
   })
   if(length(expr.list)>1){
-  comm.genes<-rownames(expr.list[[1]])
-  for(i in 2:length(expr.list))
-    comm.genes<-intersect(comm.genes,rownames(expr.list[[i]]))
-  full.dat<-do.call('cbind',lapply(expr.list,function(x) x[comm.genes,]))
-  }
+    comm.genes<-rownames(expr.list[[1]])
+    for(i in 2:length(expr.list))
+      comm.genes<-intersect(comm.genes,rownames(expr.list[[i]]))
+      full.dat<-do.call('cbind',lapply(expr.list,function(x) x[comm.genes,]))
+    }
   else{
     full.dat<-expr.list[[1]]
   }
@@ -106,15 +106,16 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
     ddat
   })
   if(length(expr.list)>1){
-  comm.genes<-rownames(expr.list[[1]])
-  for(i in 2:length(expr.list))
-    comm.genes<-intersect(comm.genes,rownames(expr.list[[i]]))
+    comm.genes<-rownames(expr.list[[1]])
+    for(i in 2:length(expr.list))
+      comm.genes<-intersect(comm.genes,rownames(expr.list[[i]]))
+    ##now combine all samples by doing a cbind
+    full.dat<-do.call('cbind',lapply(expr.list,function(x) x[comm.genes,]))
   }
   else{
     full.dat<-expr.list[[1]]
   }
-  ##now combine all samples by doing a cbind
-  full.dat<-do.call('cbind',lapply(expr.list,function(x) x[comm.genes,]))
+
   return(full.dat)
   
 }
