@@ -152,7 +152,7 @@ getCclePredStats<-function(genelist){
     #now collect mean values
     stats<-c(apply(ndmat,1,function(x) mean(x[x>0])),apply(ndmat,2,function(x) mean(x[x>0])))
     return(stats)
-  },genelist))
+  },genelist,all.muts,all.expr))
 
   rownames(res)<-dlist
   write.table(res,file='TCGApathwayStats.txt',sep='\t')
