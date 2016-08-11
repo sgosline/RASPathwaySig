@@ -109,6 +109,7 @@ getTcgaPredStats<-function(genelist){
       mutdata<-getDisMutationData(ct)
       exprdata<-getDisExpressionData(ct)
       compats<-intersect(colnames(mutdata),colnames(exprdata))
+      
       print(paste("Found",length(compats),'patients with expression and mutation data for',ct))
         df<-crossGenePreds(genelist,mutMatrix=mutdata[,compats],exprMatrix=exprdata[,compats],cancerType=ct,prefix='tcga')
         print(paste('Finished',ct))
