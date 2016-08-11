@@ -131,7 +131,7 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
     profile='cellline_ccle_broad_mrna'
 
   caseLists<-getCaseLists(mycgds,mycancerstudy)
-  print('Collecting CCLE expression data for',ifelse(tiss=='','all',tiss),'tissue')
+  print(paste('Collecting CCLE expression data for',ifelse(tiss=='','all',tiss),'tissue'))
 
   ##get those samples with mRNA expression data
   mrnaSamps=caseLists$case_list_id[grep('mrna',caseLists$case_list_id)]
@@ -168,7 +168,7 @@ getCcleMutationData<-function(tiss=''){
   profile="cellline_ccle_broad_mutations" ##think about adding CNA data
   caseLists<-getCaseLists(mycgds,mycancerstudy)
   mutSamps<-caseLists$case_list_id[grep("sequenced",caseLists[,1])]
-  print('Collecting CCLE mutation data for',ifelse(tiss=='','all',tiss),'tissue')
+  print(paste('Collecting CCLE mutation data for',ifelse(tiss=='','all',tiss),'tissue'))
   gene.groups=split(all.genes, ceiling(seq_along(all.genes)/500))
   dat<-lapply(gene.groups,function(g) getProfileData(mycgds,g,profile,mutSamps))
 
