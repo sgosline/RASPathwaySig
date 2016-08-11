@@ -126,15 +126,15 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
 
   mycancerstudy='cellline_ccle_broad'
 
-  profile='cellline_ccle_broad_mrna_median_Zscore' ##eventually test out both
+  profile<<-'cellline_ccle_broad_mrna_median_Zscore' ##eventually test out both
   if(!getZscores)
-    profile='cellline_ccle_broad_mrna'
+    profile<<-'cellline_ccle_broad_mrna'
 
   caseLists<-getCaseLists(mycgds,mycancerstudy)
   print(paste('Collecting CCLE expression data for',ifelse(tiss=='','all',tiss),'tissue'))
 
   ##get those samples with mRNA expression data
-  mrnaSamps=caseLists$case_list_id[grep('mrna',caseLists$case_list_id)]
+  mrnaSamps<<-caseLists$case_list_id[grep('mrna',caseLists$case_list_id)]
 
   #cbio seems to handle chunks of 500 or so
   gene.groups=split(all.genes, ceiling(seq_along(all.genes)/500))
@@ -164,10 +164,10 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
 }
 #'get CCLE mutation dat
 getCcleMutationData<-function(tiss=''){
-  mycancerstudy='cellline_ccle_broad'
-  profile="cellline_ccle_broad_mutations" ##think about adding CNA data
+  mycancerstudy<-'cellline_ccle_broad'
+  profile<<-"cellline_ccle_broad_mutations" ##think about adding CNA data
   caseLists<-getCaseLists(mycgds,mycancerstudy)
-  mutSamps<-caseLists$case_list_id[grep("sequenced",caseLists[,1])]
+  mutSamps<<-caseLists$case_list_id[grep("sequenced",caseLists[,1])]
   print(paste('Collecting CCLE mutation data for',ifelse(tiss=='','all',tiss),'tissue'))
   gene.groups=split(all.genes, ceiling(seq_along(all.genes)/500))
   dat<-lapply(gene.groups,function(g) getProfileData(mycgds,g,profile,mutSamps))
