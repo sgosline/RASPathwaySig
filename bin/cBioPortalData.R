@@ -17,7 +17,7 @@ getDiseaseSampleMapping<-function(dis=''){
 #various disease types in cbioporta.
 broad.cancer.types=c('brca','cellline','lcll','desm','dlbc','esca','hnsc','luad','mbl','skcm','mm','nsclc','es','prad')
 mskcc.cancer.types=c('acyc','acbc','blca','coadread','luad','mpnst','thyroid','prad','hnc','sarc','scco')
-tcga.cancer.types<-c('laml','acc','blca','lgg','brca','cesc','chol','coadread','esca','gbm','hnsc','kich','kirc','kirp','lihc','luad','lusc','dlbc','lgggbm','meso','ov','nsclc','paad','thca','pcpg','prad','sarc','skcm','stad','tgct','thym','ucs','ucec','uvm')
+tcga.cancer.types<-c('laml','acc','blca','lgg','brca','cesc','chol','coadread','esca','gbm','hnsc','kich','kirc','kirp','lihc','luad','lusc','dlbc','lgggbm','ov','nsclc','paad','thca','pcpg','prad','sarc','skcm','stad','tgct','thym','ucs','ucec','uvm')#meso has no sequence data
 
 ##not all have counts
 cell.line.tiss<-c('CENTRAL_NERVOUS_SYSTEM','BONE','PROSTATE','STOMACH','URINARY_TRACT','OVARY','HAEMATOPOIETIC_AND_LYMPHOID_TISSUE','KIDNEY','THYROID','SKIN','SOFT_TISSUE','SALIVARY_GLAND','LUNG','PLEURA','LIVER','ENDOMETRIUM','PANCREAS','BREAST','UPPER_AERODIGESTIVE_TRACT','LARGE_INTESTINE','AUTONOMIC_GANGLIA','OESOPHAGUS','BILIARY_TRACT','SMALL_INTESTINE')
