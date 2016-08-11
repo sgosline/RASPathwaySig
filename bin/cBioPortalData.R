@@ -11,7 +11,7 @@ all.studies<-getCancerStudies(mycgds)
 #'to various cell lines and disease profiles so that when
 #'all are joined we can compare one to another
 getDiseaseSampleMapping<-function(dis=''){
-  
+
 }
 
 #various disease types in cbioporta.
@@ -23,11 +23,11 @@ tcga.cancer.types<-c('laml','acc','blca','lgg','brca','cesc','chol','coadread','
 cell.line.tiss<-c('CENTRAL_NERVOUS_SYSTEM','BONE','PROSTATE','STOMACH','URINARY_TRACT','OVARY','HAEMATOPOIETIC_AND_LYMPHOID_TISSUE','KIDNEY','THYROID','SKIN','SOFT_TISSUE','SALIVARY_GLAND','LUNG','PLEURA','LIVER','ENDOMETRIUM','PANCREAS','BREAST','UPPER_AERODIGESTIVE_TRACT','LARGE_INTESTINE','AUTONOMIC_GANGLIA','OESOPHAGUS','BILIARY_TRACT','SMALL_INTESTINE')
 
 getDisMutationData<-function(dis='',study='tcga'){
-  
+
   #if disease is blank will get all diseases
   ind=grep(paste(tolower(dis),study,sep='_'),all.studies$cancer_study_id)
   print(paste('found',length(ind),study,'samples for disease',dis))
-  
+
   if(length(ind)==0)
     return(NULL)
   mycancerstudy<-all.studies$cancer_study_id[ind]
@@ -50,9 +50,9 @@ getDisMutationData<-function(dis='',study='tcga'){
     dfdat<-apply(ddat,1,function(x){
       sapply(unlist(x),function(y) !is.na(y) && y!='NaN')
     })
-    
+
     return(dfdat)
-    
+
   })
   if(length(expr.list)>1){
     comm.genes<-rownames(expr.list[[1]])
@@ -64,7 +64,7 @@ getDisMutationData<-function(dis='',study='tcga'){
     full.dat<-expr.list[[1]]
   }
   return(full.dat)
-  
+
 }
 
 #'formats TCGA expression data into a single matrix, often combining
@@ -76,7 +76,7 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
   if(length(ind)==0){
     return(NULL)
   }
-  
+
   mycancerstudy<-all.studies$cancer_study_id[ind]
   expr.list<-lapply(mycancerstudy,function(cs){
     print(paste(cs,study,'Expression data'))
@@ -117,24 +117,25 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
   }
 
   return(full.dat)
-  
+
 }
 
 
 #'get CCLE expressiond ata. can get z score or affy data, not sure which to do yet
 getCcleExpressionData<-function(tiss='',getZscores=FALSE){
-  
+
   mycancerstudy='cellline_ccle_broad'
-  
+
   profile='cellline_ccle_broad_mrna_median_Zscore' ##eventually test out both
   if(!getZscores)
     profile='cellline_ccle_broad_mrna'
-  
+
   caseLists<-getCaseLists(mycgds,mycancerstudy)
-  
+  print('Collecting CCLE expression data for',ifelse(tiss=='','all',tiss),'tissue')
+
   ##get those samples with mRNA expression data
   mrnaSamps=caseLists$case_list_id[grep('mrna',caseLists$case_list_id)]
-  
+
   #cbio seems to handle chunks of 500 or so
   gene.groups=split(all.genes, ceiling(seq_along(all.genes)/500))
   dat<-lapply(gene.groups,function(g) getProfileData(mycgds,g,profile,mrnaSamps))
@@ -143,12 +144,12 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
   for(i in which(sapply(dat,nrow)!=0)){
     ddat<-cbind(ddat,dat[[i]])
   }
-  
+
   nans<-which(apply(ddat,2,function(x) all(is.nan(x))))
   ddat<-ddat[,-nans]
   ddat<-ddat[,-1]
   ddat<-data.frame(t(ddat))
-  
+
   ##tissue here
   if(tiss!=''){
     cols<-grep(tiss,colnames(ddat))
@@ -156,10 +157,10 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
   }else{
     cols<-1:ncol(ddat)
   }
-  
-  
+
+
   return(ddat[,cols])
-  
+
 }
 #'get CCLE mutation dat
 getCcleMutationData<-function(tiss=''){
@@ -167,9 +168,10 @@ getCcleMutationData<-function(tiss=''){
   profile="cellline_ccle_broad_mutations" ##think about adding CNA data
   caseLists<-getCaseLists(mycgds,mycancerstudy)
   mutSamps<-caseLists$case_list_id[grep("sequenced",caseLists[,1])]
+  print('Collecting CCLE mutation data for',ifelse(tiss=='','all',tiss),'tissue')
   gene.groups=split(all.genes, ceiling(seq_along(all.genes)/500))
   dat<-lapply(gene.groups,function(g) getProfileData(mycgds,g,profile,mutSamps))
-  
+
   ddat<-matrix()
   for(i in which(sapply(dat,nrow)!=0)){
     ddat<-cbind(ddat,dat[[i]])
@@ -181,7 +183,7 @@ getCcleMutationData<-function(tiss=''){
   dfdat<-apply(ddat,1,function(x){
     sapply(unlist(x),function(y) !is.na(y) && y!='NaN')
   })
-  
+
   ##tissue here
   if(tiss!=''){
     cols<-grep(tiss,colnames(dfdat))
@@ -189,8 +191,8 @@ getCcleMutationData<-function(tiss=''){
   }else{
     cols<-1:ncol(dfdat)
   }
-  
+
   return(dfdat[,cols])
-  
+
 
 }
