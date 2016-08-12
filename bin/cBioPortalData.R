@@ -126,10 +126,11 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
 
   mycancerstudy='cellline_ccle_broad'
 
-  profile<<-'cellline_ccle_broad_mrna_median_Zscore' ##eventually test out both
+  mprofile<-'cellline_ccle_broad_mrna_median_Zscores' ##eventually test out both
   if(!getZscores)
-    profile<<-'cellline_ccle_broad_mrna'
-
+    mprofile<-'cellline_ccle_broad_mrna'
+  profile<-mprofile
+  
   caseLists<-getCaseLists(mycgds,mycancerstudy)
   print(paste('Collecting CCLE expression data for',ifelse(tiss=='','all',tiss),'tissue'))
 
@@ -146,7 +147,8 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
   }
 
   nans<-which(apply(ddat,2,function(x) all(is.nan(x))))
-  ddat<-ddat[,-nans]
+  if(length(nans)>0)
+    ddat<-ddat[,-nans]
   ddat<-ddat[,-1]
   ddat<-data.frame(t(ddat))
 
