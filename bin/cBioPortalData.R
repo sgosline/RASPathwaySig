@@ -87,7 +87,7 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
       rnaseqs<-allprofs[grep('mrna',allprofs)]
     if(length(grep('merged',rnaseqs))>0)
       rnaseqs<-rnaseqs[-grep('merged',rnaseqs)]
-    
+
     zscores<-grep('Zscores',rnaseqs)
     profile=rnaseqs[zscores]
     if(!getZscores)
@@ -140,7 +140,7 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
   if(!getZscores)
     mprofile<-'cellline_ccle_broad_mrna'
   profile<-mprofile
-  
+
   caseLists<-getCaseLists(mycgds,mycancerstudy)
   print(paste('Collecting CCLE expression data for',ifelse(tiss=='','all',tiss),'tissue'))
 
@@ -177,9 +177,9 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
 #'get CCLE mutation dat
 getCcleMutationData<-function(tiss=''){
   mycancerstudy<-'cellline_ccle_broad'
-  profile<<-"cellline_ccle_broad_mutations" ##think about adding CNA data
+  profile<-"cellline_ccle_broad_mutations" ##think about adding CNA data
   caseLists<-getCaseLists(mycgds,mycancerstudy)
-  mutSamps<<-caseLists$case_list_id[grep("sequenced",caseLists[,1])]
+  mutSamps<-caseLists$case_list_id[grep("sequenced",caseLists[,1])]
   print(paste('Collecting CCLE mutation data for',ifelse(tiss=='','all',tiss),'tissue'))
   gene.groups=split(all.genes, ceiling(seq_along(all.genes)/500))
   dat<-lapply(gene.groups,function(g) getProfileData(mycgds,g,profile,mutSamps))
