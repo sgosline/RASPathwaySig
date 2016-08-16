@@ -41,8 +41,8 @@ model.pred<-function(cvfit,exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
   auc.val=0
   pfit<-NULL
   exprdata[which(is.na(exprdata),arr.ind=T)]<-0.0
-  
-#   try(pfit <- predict(cvfit,t(exprdata[,-1]),s=minlambda,type="response"))
+  #new.exprdata<-apply(exprdata,2,function(x) {x[which(!is.finite(as.numeric(x)))]<-0.0; return(as.numeric(x))})
+  #   try(pfit <- predict(cvfit,t(exprdata[,-1]),s=minlambda,type="response"))
   try(pfit <- predict(cvfit,t(exprdata),s=minlambda,type="response"))
   if(is.null(pfit))
 	  return(auc.val)
@@ -60,6 +60,31 @@ model.pred<-function(cvfit,exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
   try(auc.val<-auc(roc(MutationStatus~Prediction,df)))
 
   return(list(Response=df,Coeff=coeffs,AUC=auc.val))
+}
+
+#'takes a model and scores each column with the likelihood of being a mutant!
+model.score<-function(cvfit,exprdata,pref='',alpha=0.1){
+  #extract information and predict
+  minlambda=cvfit$lambda.min
+  
+  coeffs=coef(cvfit, s = "lambda.min")
+  
+  pred.val=rep(NA,ncol(exprdata))
+  names(pred.val)<-colnames(exprdata)
+  pfit<-NULL
+  exprdata[which(is.na(exprdata),arr.ind=T)]<-0.0
+  
+  #   try(pfit <- predict(cvfit,t(exprdata[,-1]),s=minlambda,type="response"))
+  try(pfit <- predict(cvfit,t(exprdata),s=minlambda,type="response"))
+  if(is.null(pfit))
+    return(pred.val)
+  
+  pred.val<-pfit[,1]
+  names(pred.val)<-rownames(pfit)
+  return(pred.val)
+  
+#  rerun(pre[,1],MutationStatus=mut.vec)
+  
 }
 
 buildModelFromData<-function(exprdata,mutdata,pref='',alpha=0.1,doPlot=TRUE,doKfold=10){

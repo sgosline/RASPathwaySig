@@ -83,6 +83,11 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
     caseLists<-getCaseLists(mycgds,cs)
     allprofs<-getGeneticProfiles(mycgds,cs)[,1]
     rnaseqs<-allprofs[grep('rna_seq',allprofs)]
+    if(length(rnaseqs)==0)
+      rnaseqs<-allprofs[grep('mrna',allprofs)]
+    if(length(grep('merged',rnaseqs))>0)
+      rnaseqs<-rnaseqs[-grep('merged',rnaseqs)]
+    
     zscores<-grep('Zscores',rnaseqs)
     profile=rnaseqs[zscores]
     if(!getZscores)
@@ -92,6 +97,8 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
     mrnaSamps=caseLists$case_list_id[grep('rna_seq',caseLists$case_list_id)]
     if(length(mrnaSamps)>1)
       mrnaSamps=mrnaSamps[grep('v2',mrnaSamps)]
+    else if(length(mrnaSamps)==0)
+      mrnaSamps=caseLists$case_list_id[grep('mrna',caseLists$case_list_id)]
     gene.groups=split(all.genes, ceiling(seq_along(all.genes)/500))
     dat<-lapply(gene.groups,function(g) getProfileData(mycgds,g,profile,mrnaSamps))
     ddat<-matrix()
@@ -115,8 +122,11 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
   else{
     full.dat<-expr.list[[1]]
   }
-
-  return(full.dat)
+  new.dat<-full.dat
+  #print(dim(full.dat))
+  #new.dat<-apply(full.dat,2,function(x) as.numeric)
+  #rownames(new.dat)<-rownames(full.dat)
+  return(new.dat)
 
 }
 
@@ -155,7 +165,7 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
   ##tissue here
   if(tiss!=''){
     cols<-grep(tiss,colnames(ddat))
-    print('Selecting',length(cols),'cell lines for tissue',tiss)
+    print(paste('Selecting',length(cols),'cell lines for tissue',tiss))
   }else{
     cols<-1:ncol(ddat)
   }
@@ -189,7 +199,7 @@ getCcleMutationData<-function(tiss=''){
   ##tissue here
   if(tiss!=''){
     cols<-grep(tiss,colnames(dfdat))
-    print('Selecting',length(cols),'cell lines for tissue',tiss)
+    print(paste('Selecting',length(cols),'cell lines for tissue',tiss))
   }else{
     cols<-1:ncol(dfdat)
   }
