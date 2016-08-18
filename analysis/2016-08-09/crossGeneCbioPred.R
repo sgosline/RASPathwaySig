@@ -115,7 +115,11 @@ getTcgaPredStats<-function(genelist){
       md<-mutdata[,compats]
       #print(dim(md))
       ed<-exprdata[,compats]
-      df<-crossGenePreds(genelist,mutMatrix=md,exprMatrix=ed,cancerType=ct,prefix='tcga')
+      df<-NULL
+      try(df<-crossGenePreds(genelist,mutMatrix=md,exprMatrix=ed,cancerType=ct,prefix='tcga'))
+      if(is.null(df))
+        return(rep(0,length(genelist)-1))
+
       print(paste('Finished',ct))
                                         #get offdiagonal predictions
         ndmat<-apply(df,2,unlist)*1-diag(nrow(df))
