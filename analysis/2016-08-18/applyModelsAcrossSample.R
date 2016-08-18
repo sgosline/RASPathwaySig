@@ -15,7 +15,7 @@ ccle.list<<-c("allCcle","BREAST","HAEMATOPOIETIC_AND_LYMPHOID_TISSUE","LUNG","SK
 #' @param minPat number of patients to require in predictor
 crossDataScoresPerGene<-function(gene,datasetList,minPat=3){
                                         #iterate through the gene list
-    cl<-makeCluster(min(10,length(datasetList)),outfile='cluster.txt')
+    cl<-makeCluster(min(2,length(datasetList)),outfile='cluster.txt')
   
    # require(gtools)
    # combos<-combinations(datasetList)
@@ -37,7 +37,7 @@ crossDataScoresPerGene<-function(gene,datasetList,minPat=3){
         ##get mutation data, including patients with mutation
         ##get training dataset - expression and mutation
         if(ds%in%tcga.list){
-          exprMatrix=getDisExpressionData(ds,getZscores=T)
+          exprMatrix<-getDisExpressionData(ds,getZscores=T)
           mutMatrix<-getDisMutationData(ds)
         }else{
           mutMatrix<-getCcleMutationData(ds)
@@ -105,7 +105,7 @@ crossDataScoresPerGene<-function(gene,datasetList,minPat=3){
       mut.vec2=factor(mut.vec2,levels=c("WT","MUTANT"))
       if(length(which(mut.vec2=='MUTANT'))<2)
         return(0.0)
-      res=model.pred(fit,testExpr,mut.vec2,pref=paste(ds,ds2,sep='_to_'),doPlot=F)
+      res=model.pred(fit,testExpr,mut.vec2,pref=paste(ds,'to',ds2,'forGene',gene,sep='_'),doPlot=T)
       return(res$AUC)
     })
     
