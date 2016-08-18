@@ -144,7 +144,7 @@ getCclePredStats<-function(genelist){
 
       compats<-intersect(colnames(mutdata),colnames(exprdata))
       if(ct!='')
-          compats=compats[grep(ct)]
+          compats=compats[grep(ct),compats]
     df<-crossGenePreds(genelist,mutMatrix=mutdata[,compats],exprMatrix=exprdata[,compats],cancerType=ct,prefix='ccle')
     print(paste('Finished',ct))
     #get offdiagonal predictions

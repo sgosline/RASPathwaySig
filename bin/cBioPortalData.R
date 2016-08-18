@@ -24,10 +24,15 @@ cell.line.tiss<-c('CENTRAL_NERVOUS_SYSTEM','BONE','PROSTATE','STOMACH','URINARY_
 
 getDisMutationData<-function(dis='',study='tcga'){
 
+  
+  if(tolower(dis)=='alltcga')
+    dval=''
+  else
+    dval=dis
   #if disease is blank will get all diseases
-  ind=grep(paste(tolower(dis),study,sep='_'),all.studies$cancer_study_id)
+  ind=grep(paste(tolower(dval),study,sep='_'),all.studies$cancer_study_id)
   print(paste('found',length(ind),study,'samples for disease',dis))
-
+  
   if(length(ind)==0)
     return(NULL)
   mycancerstudy<-all.studies$cancer_study_id[ind]
@@ -71,7 +76,14 @@ getDisMutationData<-function(dis='',study='tcga'){
 #'samples from multiple studies
 getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
   #if disease is blank will get all diseases
-  ind=grep(paste(tolower(dis),study,sep='_'),all.studies$cancer_study_id)
+  
+  
+  if(tolower(dis)=='alltcga')
+    dval=''
+  else
+    dval=dis
+  
+  ind=grep(paste(tolower(dval),study,sep='_'),all.studies$cancer_study_id)
   print(paste('found',length(ind),study,'samples for disease',dis))
   if(length(ind)==0){
     return(NULL)
@@ -136,13 +148,19 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
 
   mycancerstudy='cellline_ccle_broad'
 
+  
+  if(tolower(tiss)=='allccle')
+    tval=''
+  else
+    tval=tiss
+  
   mprofile<-'cellline_ccle_broad_mrna_median_Zscores' ##eventually test out both
   if(!getZscores)
     mprofile<-'cellline_ccle_broad_mrna'
   profile<-mprofile
 
   caseLists<-getCaseLists(mycgds,mycancerstudy)
-  print(paste('Collecting CCLE expression data for',ifelse(tiss=='','all',tiss),'tissue'))
+  print(paste('Collecting CCLE expression data for',tiss,'tissue'))
 
   ##get those samples with mRNA expression data
   mrnaSamps<<-caseLists$case_list_id[grep('mrna',caseLists$case_list_id)]
@@ -163,8 +181,8 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
   ddat<-data.frame(t(ddat))
 
   ##tissue here
-  if(tiss!=''){
-    cols<-grep(tiss,colnames(ddat))
+  if(tval!=''){
+    cols<-grep(tval,colnames(ddat))
     print(paste('Selecting',length(cols),'cell lines for tissue',tiss))
   }else{
     cols<-1:ncol(ddat)
@@ -177,10 +195,17 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
 #'get CCLE mutation dat
 getCcleMutationData<-function(tiss=''){
   mycancerstudy<-'cellline_ccle_broad'
+  
+  if(tolower(tiss)=='allccle')
+    tval=''
+  else
+    tval=tiss
+  
+  
   profile<-"cellline_ccle_broad_mutations" ##think about adding CNA data
   caseLists<-getCaseLists(mycgds,mycancerstudy)
   mutSamps<-caseLists$case_list_id[grep("sequenced",caseLists[,1])]
-  print(paste('Collecting CCLE mutation data for',ifelse(tiss=='','all',tiss),'tissue'))
+  print(paste('Collecting CCLE mutation data for',tiss,'tissue'))
   gene.groups=split(all.genes, ceiling(seq_along(all.genes)/500))
   dat<-lapply(gene.groups,function(g) getProfileData(mycgds,g,profile,mutSamps))
 
@@ -197,8 +222,8 @@ getCcleMutationData<-function(tiss=''){
   })
 
   ##tissue here
-  if(tiss!=''){
-    cols<-grep(tiss,colnames(dfdat))
+  if(tval!=''){
+    cols<-grep(tval,colnames(dfdat))
     print(paste('Selecting',length(cols),'cell lines for tissue',tiss))
   }else{
     cols<-1:ncol(dfdat)
