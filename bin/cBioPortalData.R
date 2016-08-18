@@ -2,10 +2,10 @@
 #perhaps this will facilitate analysis across the different datasets...
 library(cgdsr)
 library(data.table)
-mycgds = CGDS("http://www.cbioportal.org/public-portal/")
 
 all.genes<-unique(fread('../../data/ucsc_kgXref_hg19_2015_10_29.csv')$geneSymbol)
-all.studies<-getCancerStudies(mycgds)
+
+
 
 #'getDiseaseSampleMapping creats a unified mapping of all samples
 #'to various cell lines and disease profiles so that when
@@ -24,6 +24,8 @@ cell.line.tiss<-c('CENTRAL_NERVOUS_SYSTEM','BONE','PROSTATE','STOMACH','URINARY_
 
 getDisMutationData<-function(dis='',study='tcga'){
 
+  mycgds = CGDS("http://www.cbioportal.org/public-portal/")
+  all.studies<-getCancerStudies(mycgds)
   
   if(tolower(dis)=='alltcga')
     dval=''
@@ -76,7 +78,8 @@ getDisMutationData<-function(dis='',study='tcga'){
 #'samples from multiple studies
 getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
   #if disease is blank will get all diseases
-  
+  mycgds = CGDS("http://www.cbioportal.org/public-portal/")
+  all.studies<-getCancerStudies(mycgds)
   
   if(tolower(dis)=='alltcga')
     dval=''
@@ -145,7 +148,9 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
 
 #'get CCLE expressiond ata. can get z score or affy data, not sure which to do yet
 getCcleExpressionData<-function(tiss='',getZscores=FALSE){
-
+  mycgds = CGDS("http://www.cbioportal.org/public-portal/")
+  #all.studies<-getCancerStudies(mycgds)
+  
   mycancerstudy='cellline_ccle_broad'
 
   
@@ -195,7 +200,9 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
 #'get CCLE mutation dat
 getCcleMutationData<-function(tiss=''){
   mycancerstudy<-'cellline_ccle_broad'
-  
+  mycgds = CGDS("http://www.cbioportal.org/public-portal/")
+  #all.studies<-getCancerStudies(mycgds)  
+
   if(tolower(tiss)=='allccle')
     tval=''
   else
@@ -204,6 +211,7 @@ getCcleMutationData<-function(tiss=''){
   
   profile<-"cellline_ccle_broad_mutations" ##think about adding CNA data
   caseLists<-getCaseLists(mycgds,mycancerstudy)
+  print('Got caselists')
   mutSamps<-caseLists$case_list_id[grep("sequenced",caseLists[,1])]
   print(paste('Collecting CCLE mutation data for',tiss,'tissue'))
   gene.groups=split(all.genes, ceiling(seq_along(all.genes)/500))

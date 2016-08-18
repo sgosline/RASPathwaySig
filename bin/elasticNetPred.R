@@ -51,8 +51,8 @@ model.pred<-function(cvfit,exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
   ##plot predicted scores of MT vs WT
   if(doPlot){
     png(paste('mutClassifierFor',pref,'.png',sep=''))
-    tstring<-paste('Predictions for\n',gsub('.',' ',pref,fixed=T))
-    p<-  ggplot(df)+geom_histogram(aes(x=Prediction,fill=MutationStatus),position='dodge')+ggtitle(tstring)
+    tstring<-paste('Predictions for\n',gsub('_',' ',pref,fixed=T))
+    p<-  ggplot(df)+geom_boxplot(aes(y=Prediction,x=MutationStatus),position='dodge')+ggtitle(tstring)
     print(p)
     dev.off()
   }
