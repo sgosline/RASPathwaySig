@@ -3,7 +3,7 @@
 library(cgdsr)
 library(data.table)
 
-all.genes<-unique(fread('../../data/ucsc_kgXref_hg19_2015_10_29.csv')$geneSymbol)
+all.genes<<-unique(fread('../../data/ucsc_kgXref_hg19_2015_10_29.csv')$geneSymbol)
 
 
 
@@ -223,6 +223,7 @@ getCcleMutationData<-function(tiss=''){
   }
   nans<-which(apply(ddat,2,function(x) all(is.nan(x)||is.na(x))))
   # nas<-which(apply(ddat,2,function(x) all(is.na(x))))
+  
   ddat<-ddat[,-nans]
   ##now set to binary matrix
   dfdat<-apply(ddat,1,function(x){

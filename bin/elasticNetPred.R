@@ -15,7 +15,7 @@ model.build<-function(exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
     return(NULL)
   }
   exprdata[which(is.na(exprdata),arr.ind=T)]<-0.0
-  
+
   ##create model and identifier predictive genes
   #cvfit<-cv.glmnet(x=t(exprdata[,-1]),y=as.factor(mut.vec),
   cvfit<-cv.glmnet(x=t(exprdata),y=as.factor(mut.vec),
@@ -52,7 +52,7 @@ model.pred<-function(cvfit,exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
   if(doPlot){
     png(paste('mutClassifierFor',pref,'.png',sep=''))
     tstring<-paste('Predictions for\n',gsub('_',' ',pref,fixed=T))
-    p<-  ggplot(df)+geom_boxplot(aes(y=Prediction,x=MutationStatus),position='dodge')+ggtitle(tstring)
+    p<-  ggplot(df)+geom_boxplot(aes(y=Prediction,x=MutationStatus,fill=MutationStatus),position='dodge')+ggtitle(tstring)
     print(p)
     dev.off()
   }
@@ -66,25 +66,25 @@ model.pred<-function(cvfit,exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
 model.score<-function(cvfit,exprdata,pref='',alpha=0.1){
   #extract information and predict
   minlambda=cvfit$lambda.min
-  
+
   coeffs=coef(cvfit, s = "lambda.min")
-  
+
   pred.val=rep(NA,ncol(exprdata))
   names(pred.val)<-colnames(exprdata)
   pfit<-NULL
   exprdata[which(is.na(exprdata),arr.ind=T)]<-0.0
-  
+
   #   try(pfit <- predict(cvfit,t(exprdata[,-1]),s=minlambda,type="response"))
   try(pfit <- predict(cvfit,t(exprdata),s=minlambda,type="response"))
   if(is.null(pfit))
     return(pred.val)
-  
+
   pred.val<-pfit[,1]
   names(pred.val)<-rownames(pfit)
   return(pred.val)
-  
+
 #  rerun(pre[,1],MutationStatus=mut.vec)
-  
+
 }
 
 buildModelFromData<-function(exprdata,mutdata,pref='',alpha=0.1,doPlot=TRUE,doKfold=10){
