@@ -44,9 +44,9 @@ crossDataScoresPerGene<-function(gene,datasetList,minPat=3){
           exprMatrix<-getCcleExpressionData(ds,getZscores=T)
         }
           
-        gr<-which(rownames(mutMatrix)==g)
-        genevals=rep(0,length(genelist))
-        names(genevals)<-genelist
+        gr<-which(rownames(mutMatrix)==gene)
+        genevals=rep(0,length(datasetList))
+        names(genevals)<-datasetList
         if(length(gr)>0){
           gmuts<-which(mutMatrix[gr,])
         }else{
