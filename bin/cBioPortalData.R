@@ -10,8 +10,24 @@ all.genes<<-unique(fread('../../data/ucsc_kgXref_hg19_2015_10_29.csv')$geneSymbo
 #'getDiseaseSampleMapping creats a unified mapping of all samples
 #'to various cell lines and disease profiles so that when
 #'all are joined we can compare one to another
-getDiseaseSampleMapping<-function(dis=''){
+getSamplesForDisease<-function(dis='',study='tcga'){
+  mycgds = CGDS("http://www.cbioportal.org/public-portal/")
+  all.studies<-getCancerStudies(mycgds)
+  ind=grep(paste(tolower(dis),study,sep='_'),all.studies$cancer_study_id)
+    if(length(ind)==0)
+    return(c())
+  mycancerstudy<-all.studies$cancer_study_id[ind]
 
+  sampList<-lapply(mycancerstudy,function(cs){
+      caseLists<-getCaseLists(mycgds,cs)
+      samps<-unlist(strsplit(caseLists[match(paste(cs,'all',sep='_'),caseLists[,1]),5],split=' '))
+                                        #      allprofs<-getGeneticProfiles(mycgds,cs)[,1]
+      print(paste('Found',length(samps),'for',cs))
+      return(samps)
+  })
+  all.samps<-unique(unlist(sampList))
+  print(paste("Found",length(all.samps),'samples for',study,dis))
+  return(all.samps)
 }
 
 #various disease types in cbioporta.
@@ -26,7 +42,7 @@ getDisMutationData<-function(dis='',study='tcga'){
 
   mycgds = CGDS("http://www.cbioportal.org/public-portal/")
   all.studies<-getCancerStudies(mycgds)
-  
+
   if(tolower(dis)=='alltcga')
     dval=''
   else
@@ -34,7 +50,7 @@ getDisMutationData<-function(dis='',study='tcga'){
   #if disease is blank will get all diseases
   ind=grep(paste(tolower(dval),study,sep='_'),all.studies$cancer_study_id)
   print(paste('found',length(ind),study,'samples for disease',dis))
-  
+
   if(length(ind)==0)
     return(NULL)
   mycancerstudy<-all.studies$cancer_study_id[ind]
@@ -80,12 +96,12 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
   #if disease is blank will get all diseases
   mycgds = CGDS("http://www.cbioportal.org/public-portal/")
   all.studies<-getCancerStudies(mycgds)
-  
+
   if(tolower(dis)=='alltcga')
     dval=''
   else
     dval=dis
-  
+
   ind=grep(paste(tolower(dval),study,sep='_'),all.studies$cancer_study_id)
   print(paste('found',length(ind),study,'samples for disease',dis))
   if(length(ind)==0){
@@ -150,15 +166,15 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
 getCcleExpressionData<-function(tiss='',getZscores=FALSE){
   mycgds = CGDS("http://www.cbioportal.org/public-portal/")
   #all.studies<-getCancerStudies(mycgds)
-  
+
   mycancerstudy='cellline_ccle_broad'
 
-  
+
   if(tolower(tiss)=='allccle')
     tval=''
   else
     tval=tiss
-  
+
   mprofile<-'cellline_ccle_broad_mrna_median_Zscores' ##eventually test out both
   if(!getZscores)
     mprofile<-'cellline_ccle_broad_mrna'
@@ -201,14 +217,14 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
 getCcleMutationData<-function(tiss=''){
   mycancerstudy<-'cellline_ccle_broad'
   mycgds = CGDS("http://www.cbioportal.org/public-portal/")
-  #all.studies<-getCancerStudies(mycgds)  
+  #all.studies<-getCancerStudies(mycgds)
 
   if(tolower(tiss)=='allccle')
     tval=''
   else
     tval=tiss
-  
-  
+
+
   profile<-"cellline_ccle_broad_mutations" ##think about adding CNA data
   caseLists<-getCaseLists(mycgds,mycancerstudy)
   print('Got caselists')
@@ -223,7 +239,7 @@ getCcleMutationData<-function(tiss=''){
   }
   nans<-which(apply(ddat,2,function(x) all(is.nan(x)||is.na(x))))
   # nas<-which(apply(ddat,2,function(x) all(is.na(x))))
-  
+
   ddat<-ddat[,-nans]
   ##now set to binary matrix
   dfdat<-apply(ddat,1,function(x){

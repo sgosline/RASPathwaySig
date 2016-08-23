@@ -92,7 +92,8 @@ scoreNFforGene<-function(gene,datasetList,testExpr,mut.vec2,dataset,minPat=3){
 
 genelist=c("RASA1","SPRED1","NF1","TP53","NRAS","KRAS","BRAF","EGFR","SHC1","GRB2","MAP2K1","MAP2K","CDK4","RB1","PAK1","SOS1","PTEN","AKT1","PDK1","MTOR")
 
-genelist=c("RASA1","NF1","TP53","NRAS","KRAS","EGFR","SHC1","CDK4","RB1","PAK1","SOS1","PTEN","AKT1","PDK1","MTOR")
+genelist=c("RASA1","NF1","TP53","NRAS","KRAS")
+genelist<-c("EGFR","SHC1","CDK4","RB1","PAK1","SOS1","PTEN","AKT1","PDK1","MTOR")
 
 #genelist<-c("KRAS","SPRED1","NF1")
 

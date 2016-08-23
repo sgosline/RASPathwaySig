@@ -16,20 +16,22 @@ ccle.list<<-c("allCcle","BREAST","HAEMATOPOIETIC_AND_LYMPHOID_TISSUE","LUNG","SK
 scoreNFforGene<-function(gene,datasetList,testExpr,mut.vec2,dataset,minPat=3){
                                         #iterate through the gene list
 
-  fullMut<-getCcleMutationData('')
-  fullExpr<-getCcleExpressionData('',getZscores=T)
+    ##get all data
+  fullMut<-getDisMutationData('') #getCcleMutationData('')
+  fullExpr<-getDisExpressionData('',getZscores=TRUE)#getCcleExpressionData('',getZscores=T)
 
   dlist<-lapply(datasetList,function(ds){
     # dlist<-lapply(genelist,function(g){
         print(paste('Creating predictive model for',ds,'across for gene',gene,' to run against',dataset))
         ##get mutation data, including patients with mutation
         ##get training dataset - expression and mutation
-     if(ds=='allCcle'){
+     if(ds=='allTcga'){
        mutMatrix=fullMut
        exprMatrix=fullExpr
-     }else{
-       mutMatrix<-fullMut[,grep(ds,colnames(fullMut))]
-       exprMatrix<-fullExpr[,grep(ds,colnames(fullExpr))]
+   }else{
+       samps<-getSamplesForDisease(ds)
+       mutMatrix<-fullMut[,intersect(samps,colnames(fullMut))]
+       exprMatrix<-fullExpr[,intersect(samps,colnames(fullExpr))]
 
      }
 
