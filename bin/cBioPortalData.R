@@ -60,7 +60,7 @@ getDisMutationData<-function(dis='',study='tcga'){
     allprofs<-getGeneticProfiles(mycgds,cs)[,1]
     profile=allprofs[grep('mutations',allprofs)]
     seqSamps=caseLists$case_list_id[grep('sequenced',caseLists$case_list_id)]
-    gene.groups=split(all.genes, ceiling(seq_along(all.genes)/500))
+    gene.groups=split(all.genes, ceiling(seq_along(all.genes)/400))
     dat<-lapply(gene.groups,function(g) getProfileData(mycgds,g,profile,seqSamps))
     ddat<-matrix()
     for(i in which(sapply(dat,nrow)!=0)){
@@ -130,7 +130,7 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
       mrnaSamps=mrnaSamps[grep('v2',mrnaSamps)]
     else if(length(mrnaSamps)==0)
       mrnaSamps=caseLists$case_list_id[grep('mrna',caseLists$case_list_id)]
-    gene.groups=split(all.genes, ceiling(seq_along(all.genes)/500))
+    gene.groups=split(all.genes, ceiling(seq_along(all.genes)/400))
     dat<-lapply(gene.groups,function(g) getProfileData(mycgds,g,profile,mrnaSamps))
     ddat<-matrix()
     for(i in which(sapply(dat,nrow)!=0)){
@@ -187,7 +187,7 @@ getCcleExpressionData<-function(tiss='',getZscores=FALSE){
   mrnaSamps<<-caseLists$case_list_id[grep('mrna',caseLists$case_list_id)]
 
   #cbio seems to handle chunks of 500 or so
-  gene.groups=split(all.genes, ceiling(seq_along(all.genes)/500))
+  gene.groups=split(all.genes, ceiling(seq_along(all.genes)/400))
   dat<-lapply(gene.groups,function(g) getProfileData(mycgds,g,profile,mrnaSamps))
 
   ddat<-matrix()

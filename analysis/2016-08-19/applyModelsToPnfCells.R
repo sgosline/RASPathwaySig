@@ -13,11 +13,13 @@ ccle.list<<-c("allCcle","BREAST","HAEMATOPOIETIC_AND_LYMPHOID_TISSUE","LUNG","SK
 #' @param genelist list of genes to compare across
 #' @param cancerType TCGA cancer abbreviation
 #' @param minPat number of patients to require in predictor
-scoreNFforGene<-function(gene,datasetList,testExpr,mut.vec2,dataset,minPat=3){
+scoreNFforGene<-function(gene,datasetList,testExpr,mut.vec2,dataset,minPat=3,fullMut=NA,fullExpr=NA){
                                         #iterate through the gene list
   
-  fullMut<-getCcleMutationData('')
-  fullExpr<-getCcleExpressionData('',getZscores=T)
+  if(is.na(fullMut))
+    fullMut<-getCcleMutationData('')
+  if(is.na(fullExpr))
+    fullExpr<-getCcleExpressionData('',getZscores=T)
   
   dlist<-lapply(datasetList,function(ds){
     # dlist<-lapply(genelist,function(g){
@@ -120,9 +122,11 @@ mutVecHetsAsPos<-factor(mutVecHetsAsPos,levels=c("WT","MUTANT"))
 names(mutVecHetsAsPos)<-rownames(phenoData)
 
 datasetList=ccle.list
+fullMut<-getCcleMutationData('')
+  fullExpr<-getCcleExpressionData('',getZscores=T)
 for(g in genelist){
   ##sample all combinations of datasets - ccle, tcga, to see how each predicts the other.
-  res<-scoreNFforGene(g,datasetList,pnfData,mutVecHetsAsNeg,'pnfCellsHetsareMuts',minPat=3)
-  res2<-scoreNFforGene(g,datasetList,pnfData,mutVecHetsAsPos,'pnfCellsHetsAreWT',minPat=3)
+  res<-scoreNFforGene(g,datasetList,pnfData,mutVecHetsAsNeg,'pnfCellsHetsareMuts',minPat=3,fullMut,fullExpr)
+  res2<-scoreNFforGene(g,datasetList,pnfData,mutVecHetsAsPos,'pnfCellsHetsAreWT',minPat=3,fullMut,fullExpr)
   
   }
