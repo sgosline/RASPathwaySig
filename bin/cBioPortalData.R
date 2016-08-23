@@ -12,7 +12,7 @@ all.genes<<-unique(fread('../../data/ucsc_kgXref_hg19_2015_10_29.csv')$geneSymbo
 getSamplesForDisease<-function(dis='',study='tcga'){
   mycgds = CGDS("http://www.cbioportal.org/public-portal/")
   all.studies<-getCancerStudies(mycgds)
-  ind=grep(paste(tolower(dis),study,sep='_'),all.studies$cancer_study_id)
+  ind=grep(paste(tolower(dis),paste(study,'$',sep=''),sep='_'),all.studies$cancer_study_id)
     if(length(ind)==0)
     return(c())
   mycancerstudy<-all.studies$cancer_study_id[ind]
@@ -47,12 +47,12 @@ getDisMutationData<-function(dis='',study='tcga'){
   else
     dval=dis
   #if disease is blank will get all diseases
-  ind=grep(paste(tolower(dval),study,sep='_'),all.studies$cancer_study_id)
+  ind=grep(paste(tolower(dval),paste(study,'$',sep=''),sep='_'),all.studies$cancer_study_id)
   print(paste('found',length(ind),study,'samples for disease',dis))
 
   if(length(ind)==0)
     return(NULL)
-  
+
   mycancerstudy<-all.studies$cancer_study_id[ind]
   expr.list<-lapply(mycancerstudy,function(cs){
     print(paste(cs,study,'Mutation data'))
@@ -102,7 +102,7 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
   else
     dval=dis
 
-  ind=grep(paste(tolower(dval),study,sep='_'),all.studies$cancer_study_id)
+  ind=grep(paste(tolower(dval),paste(study,'$',sep=''),sep='_'),all.studies$cancer_study_id)
   print(paste('found',length(ind),study,'samples for disease',dis))
   if(length(ind)==0){
     return(NULL)
