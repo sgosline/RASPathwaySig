@@ -47,14 +47,23 @@ model.pred<-function(cvfit,exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
   if(is.null(pfit))
 	  return(auc.val)
 
-  df<-data.frame(Prediction=pfit[,1],MutationStatus=mut.vec)
+  df<-data.frame(Prediction=as.numeric(pfit[,1]),MutationStatus=mut.vec,Samples=names(mut.vec))
   ##plot predicted scores of MT vs WT
   if(doPlot){
     png(paste('mutClassifierFor',pref,'.png',sep=''))
     tstring<-paste('Predictions for\n',gsub('_',' ',pref,fixed=T))
-    p<-  ggplot(df)+geom_boxplot(aes(y=Prediction,x=MutationStatus,fill=MutationStatus),position='dodge')+ggtitle(tstring)
+    p<-  ggplot(df)+geom_boxplot(aes(y=Prediction,x=MutationStatus),position='dodge')+ggtitle(tstring)
     print(p)
     dev.off()
+    
+    ##if there are few enough samples, plot the score for each!!!!
+    if(nrow(df)<20){
+      png(paste('mutScoresFor',pref,'.png',sep=''))
+      tstring<-paste('Predictions for\n',gsub('_',' ',pref,fixed=T))
+      p<-  ggplot(df)+geom_point(aes(y=Prediction,x=Samples,col=MutationStatus),position='dodge')+ggtitle(tstring)+ theme(axis.text.x = element_text(angle = 90, hjust = 1))
+      print(p)
+      dev.off()
+    }
   }
 
   try(auc.val<-auc(roc(MutationStatus~Prediction,df)))
