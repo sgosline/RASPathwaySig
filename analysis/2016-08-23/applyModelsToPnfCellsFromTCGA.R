@@ -126,10 +126,11 @@ clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
 clusterEvalQ(cl,source("../../bin/cBioPortalData.R"))
 
 dlist<-parLapply(cl,as.list(genelist),function(g){
-
+datasetList<-tcga.list[2:5]
 #for(g in genelist){
   ##sample all combinations of datasets - ccle, tcga, to see how each predicts the other.
   res<-scoreNFforGene(g,datasetList,pnfData,mutVecHetsAsNeg,'pnfCellsHetsareMuts',minPat=3)
   res2<-scoreNFforGene(g,datasetList,pnfData,mutVecHetsAsPos,'pnfCellsHetsAreWT',minPat=3)
 
   })
+stopCluster(cl)
