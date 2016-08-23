@@ -6,8 +6,7 @@ library(data.table)
 all.genes<<-unique(fread('../../data/ucsc_kgXref_hg19_2015_10_29.csv')$geneSymbol)
 
 
-
-#'getDiseaseSampleMapping creats a unified mapping of all samples
+#'getSamplesForDisease creates a unified mapping of all samples
 #'to various cell lines and disease profiles so that when
 #'all are joined we can compare one to another
 getSamplesForDisease<-function(dis='',study='tcga'){
@@ -53,6 +52,7 @@ getDisMutationData<-function(dis='',study='tcga'){
 
   if(length(ind)==0)
     return(NULL)
+  
   mycancerstudy<-all.studies$cancer_study_id[ind]
   expr.list<-lapply(mycancerstudy,function(cs){
     print(paste(cs,study,'Mutation data'))
@@ -253,8 +253,6 @@ getCcleMutationData<-function(tiss=''){
   }else{
     cols<-1:ncol(dfdat)
   }
-
   return(dfdat[,cols])
-
 
 }

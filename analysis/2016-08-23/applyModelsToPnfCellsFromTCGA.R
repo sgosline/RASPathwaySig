@@ -8,7 +8,6 @@ tcga.list<<-c("allTcga",tcga.cancer.types)
 ccle.list<<-c("allCcle","BREAST","HAEMATOPOIETIC_AND_LYMPHOID_TISSUE","LUNG","SKIN","CENTRAL_NERVOUS_SYSTEM","LARGE_INTESTINE","OVARY")
 
 
-
 #'Get mutation-like score for each cell line/gene put into function
 #' @param genelist list of genes to compare across
 #' @param cancerType TCGA cancer abbreviation
@@ -126,7 +125,7 @@ clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
 clusterEvalQ(cl,source("../../bin/cBioPortalData.R"))
 
 dlist<-parLapply(cl,as.list(genelist),function(g){
-
+    datasetList<-tcga.list
 #for(g in genelist){
   ##sample all combinations of datasets - ccle, tcga, to see how each predicts the other.
   res<-scoreNFforGene(g,datasetList,pnfData,mutVecHetsAsNeg,'pnfCellsHetsareMuts',minPat=3)
