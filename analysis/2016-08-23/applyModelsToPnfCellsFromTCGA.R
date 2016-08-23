@@ -12,8 +12,13 @@ ccle.list<<-c("allCcle","BREAST","HAEMATOPOIETIC_AND_LYMPHOID_TISSUE","LUNG","SK
 #' @param genelist list of genes to compare across
 #' @param cancerType TCGA cancer abbreviation
 #' @param minPat number of patients to require in predictor
-scoreNFforGene<-function(gene,datasetList,testExpr,mut.vec2,dataset,minPat=3,fullMut,fullExpr){
+scoreNFforGene<-function(gene,datasetList,testExpr,mut.vec2,dataset,minPat=3,fullMut=NA,fullExpr=NA){
                                         #iterate through the gene list
+
+    if(is.na(fullMut))
+        fullMut<-getDisMutationData('') #getCcleMutationData('')
+    if(is.na(fullExpr))
+        fullExpr<-getDisExpressionData('',getZscores=TRUE)#getCcleExpressionData('',getZscores=T)
 
   dlist<-lapply(datasetList,function(ds){
     # dlist<-lapply(genelist,function(g){
