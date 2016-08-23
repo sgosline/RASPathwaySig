@@ -12,12 +12,8 @@ ccle.list<<-c("allCcle","BREAST","HAEMATOPOIETIC_AND_LYMPHOID_TISSUE","LUNG","SK
 #' @param genelist list of genes to compare across
 #' @param cancerType TCGA cancer abbreviation
 #' @param minPat number of patients to require in predictor
-scoreNFforGene<-function(gene,datasetList,testExpr,mut.vec2,dataset,minPat=3){
+scoreNFforGene<-function(gene,datasetList,testExpr,mut.vec2,dataset,minPat=3,fullMut,fullExpr){
                                         #iterate through the gene list
-
-    ##get all data
-  fullMut<-getDisMutationData('') #getCcleMutationData('')
-  fullExpr<-getDisExpressionData('',getZscores=TRUE)#getCcleExpressionData('',getZscores=T)
 
   dlist<-lapply(datasetList,function(ds){
     # dlist<-lapply(genelist,function(g){
@@ -120,16 +116,21 @@ names(mutVecHetsAsPos)<-rownames(phenoData)
 
 
 cl<-makeCluster(min(10,length(genelist)),outfile='cluster.txt')
-clusterExport(cl,c("scoreNFforGene","mutVecHetsAsNeg","mutVecHetsAsPos","pnfData",'tcga.list'))
+    ##get all data
+  fullMut<-getDisMutationData('') #getCcleMutationData('')
+  fullExpr<-getDisExpressionData('',getZscores=TRUE)#getCcleExpressionData('',getZscores=T)
+
+clusterExport(cl,c("scoreNFforGene","mutVecHetsAsNeg","mutVecHetsAsPos","pnfData",'tcga.list','fullMut','fullExpr'))
 clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
 clusterEvalQ(cl,source("../../bin/cBioPortalData.R"))
+
 
 dlist<-parLapply(cl,as.list(genelist),function(g){
 datasetList<-tcga.list[2:5]
 #for(g in genelist){
   ##sample all combinations of datasets - ccle, tcga, to see how each predicts the other.
-  res<-scoreNFforGene(g,datasetList,pnfData,mutVecHetsAsNeg,'pnfCellsHetsareMuts',minPat=3)
-  res2<-scoreNFforGene(g,datasetList,pnfData,mutVecHetsAsPos,'pnfCellsHetsAreWT',minPat=3)
+  res<-scoreNFforGene(g,datasetList,pnfData,mutVecHetsAsNeg,'pnfCellsHetsareMuts',minPat=3,fullMut,fullExpr)
+  res2<-scoreNFforGene(g,datasetList,pnfData,mutVecHetsAsPos,'pnfCellsHetsAreWT',minPat=3,fullMut,fullExpr)
 
   })
 stopCluster(cl)
