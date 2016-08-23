@@ -67,7 +67,7 @@ crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',m
           #create a factor vector to feed into predictive model
           other.vec[othermuts]<-'MUTANT'
           other.vec=factor(other.vec,levels=c("WT","MUTANT"))
-
+          names(other.vec)<-colnames(exprMatrix)
           if(length(which(other.vec=='MUTANT'))<2)
                 return(0.0)
           res=model.pred(fit,exprMatrix,other.vec,pref=paste(g,g2,sep='_to_'),doPlot=T)
