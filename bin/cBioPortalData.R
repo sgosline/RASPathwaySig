@@ -54,6 +54,14 @@ getDisMutationData<-function(dis='',study='tcga'){
     return(NULL)
 
   mycancerstudy<-all.studies$cancer_study_id[ind]
+
+  if(study=='tcga')
+      mycancerstudy=intersect(mycancerstudy,paste(tcga.cancer.types,study,sep='_'))
+  else if(study=='mskcc')
+      mycancerstudy=intersect(mycancerstudy,paste(mskcc.cancer.types,study,sep='_'))
+  else if(study=='broad')
+      mycancerstudy=intersect(mycancerstudy,paste(broad.cancer.types,study,sep='_'))
+
   expr.list<-lapply(mycancerstudy,function(cs){
     print(paste(cs,study,'Mutation data'))
     caseLists<-getCaseLists(mycgds,cs)
