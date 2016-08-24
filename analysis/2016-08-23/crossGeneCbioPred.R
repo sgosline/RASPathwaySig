@@ -70,7 +70,7 @@ crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',m
           names(other.vec)<-colnames(exprMatrix)
           if(length(which(other.vec=='MUTANT'))<2)
                 return(0.0)
-          res=model.pred(fit,exprMatrix,other.vec,pref=paste(g,'to',g2,'in',cancerType,sep='to'),doPlot=T)
+          res=model.pred(fit,exprMatrix,other.vec,pref=paste(g,'to',g2,'in',cancerType,sep='_'),doPlot=T)
             return(res$AUC)
         },mutMatrix,fit,exprMatrix)
     names(genevals)<-genelist
