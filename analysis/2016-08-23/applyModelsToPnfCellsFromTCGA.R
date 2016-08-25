@@ -120,7 +120,7 @@ mutVecHetsAsPos<-factor(mutVecHetsAsPos,levels=c("WT","MUTANT"))
 names(mutVecHetsAsPos)<-rownames(phenoData)
 
 
-cl<-makeCluster(min(10,length(genelist)),outfile='cluster.txt')
+cl<-makeCluster(min(10,length(genelist)),outfile='pnf_cluster.txt')
     ##get all data
   fullMut<-getDisMutationData('') #getCcleMutationData('')
   fullExpr<-getDisExpressionData('',getZscores=TRUE)#getCcleExpressionData('',getZscores=T)
