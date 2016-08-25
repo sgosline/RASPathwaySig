@@ -86,11 +86,14 @@ getDisMutationData<-function(dis='',study='tcga'){
 
   })
   if(length(expr.list)>1){
-    comm.genes<-rownames(expr.list[[1]])
-    for(i in 2:length(expr.list))
-      comm.genes<-intersect(comm.genes,rownames(expr.list[[i]]))
-      full.dat<-do.call('cbind',lapply(expr.list,function(x) x[comm.genes,]))
-    }
+    comm.genes<-c()#rownames(expr.list[[1]])
+    for(i in 1:length(expr.list))
+      comm.genes<-union(comm.genes,rownames(expr.list[[i]]))
+    full.dat<-do.call('cbind',lapply(expr.list,function(x){
+      rbind(x[intersect(rownames(x),comm.genes),],
+            t(sapply(setdiff(comm.genes,rownames(x)),function(y) rep(FALSE,ncol(x)))))}))
+    
+   }
   else{
     full.dat<-expr.list[[1]]
   }
