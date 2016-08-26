@@ -15,7 +15,7 @@ ccle.list<<-c("allCcle","BREAST","HAEMATOPOIETIC_AND_LYMPHOID_TISSUE","LUNG","SK
 #' @param minPat number of patients to require in predictor
 crossDataScoresPerGene<-function(gene,datasetList,minPat=3){
                                         #iterate through the gene list
-    cl<-makeCluster(min(2,length(datasetList)),outfile='cluster.txt')
+#    cl<-makeCluster(min(2,length(datasetList)),outfile='cluster.txt')
   
    # require(gtools)
    # combos<-combinations(datasetList)
@@ -24,14 +24,14 @@ crossDataScoresPerGene<-function(gene,datasetList,minPat=3){
     #  clusterExport(cl,"getMutDataForGene")
     #print(dim(exprMatrix))
     #print(dim(mutMatrix))
-    clusterExport(cl,c("gene","minPat",'datasetList','tcga.list','ccle.list'),envir=environment())
+ #   clusterExport(cl,c("gene","minPat",'datasetList','tcga.list','ccle.list'),envir=environment())
       #exporting the whole source is too much, but might work after moving around some source commands
-    clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
-    clusterEvalQ(cl,source("../../bin/cBioPortalData.R"))
+ #   clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))
+ #   clusterEvalQ(cl,source("../../bin/cBioPortalData.R"))
     
-    clusterEvalQ(cl,library(pheatmap))
+  #  clusterEvalQ(cl,library(pheatmap))
 
-    dlist<-parLapply(cl,as.list(datasetList),function(ds){
+    dlist<-lapply(datasetList,function(ds){
     # dlist<-lapply(genelist,function(g){
         print(paste('Creating predictive model for',ds,'across for gene',gene,' to run against',length(datasetList),'other datasetse'))
         ##get mutation data, including patients with mutation
