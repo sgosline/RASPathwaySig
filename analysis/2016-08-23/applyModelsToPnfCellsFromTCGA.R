@@ -25,6 +25,8 @@ scoreNFforGene<-function(gene,datasetList,testExpr,mut.vec2,dataset,minPat=3,ful
         print(paste('Creating predictive model for',ds,'across for gene',gene,' to run against',dataset))
         ##get mutation data, including patients with mutation
         ##get training dataset - expression and mutation
+  #  mutMatrix=fullMut
+   # exprMatrix=fullExpr
      if(ds=='allTcga'){
        mutMatrix=fullMut
        exprMatrix=fullExpr

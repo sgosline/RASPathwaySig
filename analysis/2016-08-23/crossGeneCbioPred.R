@@ -10,7 +10,7 @@ source("../../bin/cBioPortalData.R")
 #' @param minPat number of patients to require in predictor
 crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',minPat=3){
                                         #iterate through the gene list
-    cl<-makeCluster(min(5,length(genelist)),outfile='cluster.txt')
+    cl<-makeCluster(min(2,length(genelist)),outfile='cluster.txt')
                                         #  clusterExport(cl,"getMutDataForGene")
     #print(dim(exprMatrix))
     #print(dim(mutMatrix))
@@ -107,15 +107,16 @@ getTcgaPredStats<-function(genelist){
     dlist<-c('alltcga')#rev(tcga.list[1:7])
     #make the cluster
     res<-do.call('rbind',lapply(dlist,function(ct,genelist){
+      load('exprData.Rdata')
+      load('mutData.Rdata')
 
       if(ct=='alltcga'){
-        load('exprData.Rdata')
-        load('mutData.Rdata')
         mutdata<-mutData
         exprdata<-exprData
       }else{
-      mutdata<-getDisMutationData(ct)
-      exprdata<-getDisExpressionData(ct)
+        samps<-getSamplesForDisease(ct,'tcga')
+      mutdata<-mutData[,intersect(samps,colnames(mutData))]#getDisMutationData(ct)
+      exprdata<-exprData[,intersect(samps,colnames(exprData))]#getDisExpressionData(ct)
       }
       compats<-intersect(colnames(mutdata),colnames(exprdata))
 

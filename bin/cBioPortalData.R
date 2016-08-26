@@ -88,15 +88,19 @@ getDisMutationData<-function(dis='',study='tcga'){
   if(length(expr.list)>1){
     comm.genes<-c()#rownames(expr.list[[1]])
     for(i in 1:length(expr.list))
-      comm.genes<-union(comm.genes,rownames(expr.list[[i]]))
+        comm.genes<-union(comm.genes,rownames(expr.list[[i]]))
+
     full.dat<-do.call('cbind',lapply(expr.list,function(x){
         missing<-setdiff(comm.genes,rownames(x))
+        print(length(missing))
         if(length(missing)>0)
             dat<-rbind(x[intersect(rownames(x),comm.genes),],
                        t(sapply(missing,function(y,x) rep(FALSE,ncol(x)),x)))
         else{
             dat<-x[intersect(rownames(x),comm.genes),]
         }
+        colnames(dat)<-colnames(x)
+        dat<-dat[comm.genes,]
         return(dat)
        }))
 
