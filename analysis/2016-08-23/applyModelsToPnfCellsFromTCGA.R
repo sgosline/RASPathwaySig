@@ -121,8 +121,7 @@ mutVecHetsAsPos[which(mutVec!='--')]<-'WT'
 mutVecHetsAsPos<-factor(mutVecHetsAsPos,levels=c("WT","MUTANT"))
 names(mutVecHetsAsPos)<-rownames(phenoData)
 
-if(FALSE){
-cl<-makeCluster(min(2,length(genelist)),outfile='pnf_cluster.txt')
+cl<-makeCluster(min(5,length(genelist)),outfile='pnf_cluster.txt')
 ##get all data
 load('exprData.Rdata')
 fullExpr<-exprData
@@ -145,4 +144,3 @@ datasetList<-tcga.list
 
   })
 stopCluster(cl)
-}
