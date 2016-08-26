@@ -104,14 +104,14 @@ ccle.list<-c("","BREAST","HAEMATOPOIETIC_AND_LYMPHOID_TISSUE","LUNG","SKIN","CEN
 
 getTcgaPredStats<-function(genelist){
     #TODO still need to get list of cancer types
-    dlist<-rev(tcga.list[1:7])
+    dlist<-c('')#rev(tcga.list[1:7])
     #make the cluster
     res<-do.call('rbind',lapply(dlist,function(ct,genelist){
 
       if(ct==''){
         load('exprData.Rdata')
         load('mutData.Rdata')
-        mutdata<-'mutData'
+        mutdata<-mutData
         exprdata<-exprData
       }else{
       mutdata<-getDisMutationData(ct)
@@ -150,14 +150,9 @@ getCclePredStats<-function(genelist){
 #  all.expr<-getCcleExpressionData('')
   res<-do.call('rbind',lapply(dlist,function(ct,genelist,all.muts,all.expr){
 #    mutdata<-getCcleMutationData(ct)
-
-                                        load('exprData.Rdata')
-exprdata<-exprData
-load('mutData.Rdata')
-                                        mutdata<-mutData
                                         #    exprdata<-getCcleExpressionData(ct)
-      #mutdata<-all.muts
-      #exprdata<-all.expr
+      mutdata<-all.muts
+      exprdata<-all.expr
 
       compats<-intersect(colnames(mutdata),colnames(exprdata))
       if(ct!='')
