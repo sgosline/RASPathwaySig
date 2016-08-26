@@ -120,7 +120,7 @@ mutVecHetsAsPos<-factor(mutVecHetsAsPos,levels=c("WT","MUTANT"))
 names(mutVecHetsAsPos)<-rownames(phenoData)
 
 
-cl<-makeCluster(min(10,length(genelist)),outfile='pnf_cluster.txt')
+cl<-makeCluster(min(5,length(genelist)),outfile='pnf_cluster.txt')
 ##get all data
 load('exprData.Rdata')
 fullExpr<-exprData
@@ -135,7 +135,7 @@ clusterEvalQ(cl,source("../../bin/cBioPortalData.R"))
 
 
 dlist<-parLapply(cl,as.list(genelist),function(g){
-datasetList<-tcga.list[2:5]
+datasetList<-tcga.list
 #for(g in genelist){
   ##sample all combinations of datasets - ccle, tcga, to see how each predicts the other.
   res<-scoreNFforGene(g,datasetList,pnfData,mutVecHetsAsNeg,'pnfCellsHetsareMuts',minPat=3,fullMut,fullExpr)

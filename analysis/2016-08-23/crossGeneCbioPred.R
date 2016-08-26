@@ -10,7 +10,7 @@ source("../../bin/cBioPortalData.R")
 #' @param minPat number of patients to require in predictor
 crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',minPat=3){
                                         #iterate through the gene list
-    cl<-makeCluster(min(10,length(genelist)),outfile='cluster.txt')
+    cl<-makeCluster(min(5,length(genelist)),outfile='cluster.txt')
                                         #  clusterExport(cl,"getMutDataForGene")
     #print(dim(exprMatrix))
     #print(dim(mutMatrix))
@@ -104,11 +104,11 @@ ccle.list<-c("","BREAST","HAEMATOPOIETIC_AND_LYMPHOID_TISSUE","LUNG","SKIN","CEN
 
 getTcgaPredStats<-function(genelist){
     #TODO still need to get list of cancer types
-    dlist<-c('')#rev(tcga.list[1:7])
+    dlist<-c('alltcga')#rev(tcga.list[1:7])
     #make the cluster
     res<-do.call('rbind',lapply(dlist,function(ct,genelist){
 
-      if(ct==''){
+      if(ct=='alltcga'){
         load('exprData.Rdata')
         load('mutData.Rdata')
         mutdata<-mutData
