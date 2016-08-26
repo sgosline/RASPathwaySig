@@ -31,7 +31,7 @@ scoreNFforGene<-function(gene,datasetList,testExpr,mut.vec2,dataset,minPat=3,ful
        mutMatrix=fullMut
        exprMatrix=fullExpr
    }else{
-       samps<-getSamplesForDisease(ds)
+       samps<-sapply(getSamplesForDisease(ds),function(x) gsub('-','.',x))
        mutMatrix<-fullMut[,intersect(samps,colnames(fullMut))]
        exprMatrix<-fullExpr[,intersect(samps,colnames(fullExpr))]
 
@@ -70,10 +70,10 @@ scoreNFforGene<-function(gene,datasetList,testExpr,mut.vec2,dataset,minPat=3,ful
 
       fit=model.build(exprMatrix[comm.genes,],mut.vec,pref=gene,doPlot=FALSE)
 
-      testExpr<-testExpr[comm.genes,]
+      #testExpr<-testExpr[comm.genes,]
 
 
-      res=model.pred(fit,testExpr,mut.vec2,pref=paste(ds,'to',dataset,'forGene',gene,sep='_'),doPlot=T)
+      res=model.pred(fit,testExpr[comm.genes,],mut.vec2,pref=paste(ds,'to',dataset,'forGene',gene,sep='_'),doPlot=T)
       return(res$AUC)
     })
     dlist<-unlist(dlist)
@@ -121,8 +121,8 @@ mutVecHetsAsPos[which(mutVec!='--')]<-'WT'
 mutVecHetsAsPos<-factor(mutVecHetsAsPos,levels=c("WT","MUTANT"))
 names(mutVecHetsAsPos)<-rownames(phenoData)
 
-
-cl<-makeCluster(min(5,length(genelist)),outfile='pnf_cluster.txt')
+if(FALSE){
+cl<-makeCluster(min(2,length(genelist)),outfile='pnf_cluster.txt')
 ##get all data
 load('exprData.Rdata')
 fullExpr<-exprData
@@ -145,3 +145,4 @@ datasetList<-tcga.list
 
   })
 stopCluster(cl)
+}
