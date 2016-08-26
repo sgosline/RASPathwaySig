@@ -121,9 +121,13 @@ names(mutVecHetsAsPos)<-rownames(phenoData)
 
 
 cl<-makeCluster(min(10,length(genelist)),outfile='pnf_cluster.txt')
-    ##get all data
-  fullMut<-getDisMutationData('') #getCcleMutationData('')
-  fullExpr<-getDisExpressionData('',getZscores=TRUE)#getCcleExpressionData('',getZscores=T)
+##get all data
+load('exprData.Rdata')
+fullExpr<-exprData
+load('mutData.Rdata')
+fullMut<-mutData
+#  fullMut<-getDisMutationData('') #getCcleMutationData('')
+#  fullExpr<-getDisExpressionData('',getZscores=TRUE)#getCcleExpressionData('',getZscores=T)
 
 clusterExport(cl,c("scoreNFforGene","mutVecHetsAsNeg","mutVecHetsAsPos","pnfData",'tcga.list','fullMut','fullExpr'))
 clusterEvalQ(cl,source("../../bin/elasticNetPred.R"))

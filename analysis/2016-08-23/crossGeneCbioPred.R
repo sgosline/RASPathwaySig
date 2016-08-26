@@ -146,13 +146,18 @@ getCclePredStats<-function(genelist){
   #TODO still need to get list of cancer types
   dlist<-ccle.list
                                         #make the cluster
-  all.muts<-getCcleMutationData('')
-  all.expr<-getCcleExpressionData('')
+#  all.muts<-getCcleMutationData('')
+#  all.expr<-getCcleExpressionData('')
   res<-do.call('rbind',lapply(dlist,function(ct,genelist,all.muts,all.expr){
 #    mutdata<-getCcleMutationData(ct)
+
+                                        load('exprData.Rdata')
+exprdata<-exprData
+load('mutData.Rdata')
+                                        mutdata<-mutData
                                         #    exprdata<-getCcleExpressionData(ct)
-      mutdata<-all.muts
-      exprdata<-all.expr
+      #mutdata<-all.muts
+      #exprdata<-all.expr
 
       compats<-intersect(colnames(mutdata),colnames(exprdata))
       if(ct!='')
