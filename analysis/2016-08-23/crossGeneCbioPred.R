@@ -10,7 +10,7 @@ source("../../bin/cBioPortalData.R")
 #' @param minPat number of patients to require in predictor
 crossGenePreds<-function(genelist,mutMatrix,exprMatrix,cancerType='',prefix='',minPat=3){
                                         #iterate through the gene list
-    cl<-makeCluster(min(2,length(genelist)),outfile='cluster.txt')
+    cl<-makeCluster(min(5,length(genelist)),outfile='cluster.txt')
                                         #  clusterExport(cl,"getMutDataForGene")
     #print(dim(exprMatrix))
     #print(dim(mutMatrix))
