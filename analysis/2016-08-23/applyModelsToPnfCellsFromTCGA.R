@@ -81,7 +81,7 @@ scoreNFforGene<-function(gene,datasetList,testExpr,mut.vec2,dataset,minPat=3,ful
     df<-data.frame(Sample=datasetList,AUC=as.numeric(unlist(dlist)))
     print(df)
     require(ggplot2)
-    pdf(paste(gene,'mutationsPredictedIn',dataset,'.pdf',sep=''))
+    pdf(paste(gene,'mutationsPredictedIn',dataset,'from',ds,'.pdf',sep=''))
     g<-ggplot(df)+geom_point(aes(x=Sample,y=AUC))+ggtitle(paste('Predicting NF1 status in dataset from',gene,'in cell lines'))+ theme(axis.text.x = element_text(angle = 90, hjust = 1))
     print(g)
     dev.off()
