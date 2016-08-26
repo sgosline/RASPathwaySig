@@ -114,7 +114,11 @@ getTcgaPredStats<-function(genelist){
         mutdata<-mutData
         exprdata<-exprData
       }else{
-        samps<-getSamplesForDisease(ct,'tcga')
+        samps<-sapply(getSamplesForDisease(ds,'tcga'),function(x) gsub('-','.',x))
+        #mutMatrix<-fullMut[,intersect(samps,colnames(fullMut))]
+        #exprMatrix<-fullExpr[,intersect(samps,colnames(fullExpr))]
+        
+        #samps<-getSamplesForDisease(ct,'tcga')
       mutdata<-mutData[,intersect(samps,colnames(mutData))]#getDisMutationData(ct)
       exprdata<-exprData[,intersect(samps,colnames(exprData))]#getDisExpressionData(ct)
       }
