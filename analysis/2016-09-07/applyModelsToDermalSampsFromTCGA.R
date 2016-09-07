@@ -131,8 +131,8 @@ colnames(normDermData)<-pats
 mutVec<-rep("MUTANT",ncol(normDermData))
 names(mutVec)<-colnames(normDermData)
 
-if(FALSE){
-cl<-makeCluster(min(8,length(genelist)),outfile='dermal_cluster.txt')
+if(TRUE){
+cl<-makeCluster(min(10,length(genelist)),outfile='dermal_cluster.txt')
 ##get all data
 load('../2016-08-23/exprData.Rdata')
 fullExpr<-exprData

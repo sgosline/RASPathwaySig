@@ -57,7 +57,7 @@ model.pred<-function(cvfit,exprdata,mut.vec,pref='',alpha=0.1,doPlot=TRUE){
     dev.off()
 
     ##if there are few enough samples, plot the score for each!!!!
-    if(nrow(df)<20){
+    if(nrow(df)<40){
       pdf(paste('mutScoresFor',pref,'.pdf',sep=''))
       tstring<-paste('Predictions for\n',gsub('_',' ',pref,fixed=T))
       p<-  ggplot(df)+geom_point(aes(y=Prediction,x=Samples,col=MutationStatus),position='dodge')+ggtitle(tstring)+ theme(axis.text.x = element_text(angle = 90, hjust = 1))
