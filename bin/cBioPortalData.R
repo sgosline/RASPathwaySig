@@ -1,10 +1,11 @@
 ##create a script to parse cBIOportal data
 #perhaps this will facilitate analysis across the different datasets...
 library(cgdsr)
+library(tidyverse)
 library(data.table)
 
 script.dir <- dirname(sys.frame(1)$ofile)
-all.genes<<-unique(fread('../data/ucsc_kgXref_hg19_2015_10_29.csv')$geneSymbol)
+all.genes<<-unique(fread('../../data/ucsc_kgXref_hg19_2015_10_29.csv')$geneSymbol)
 
 
 #'getSamplesForDisease creates a unified mapping of all samples
@@ -38,7 +39,7 @@ tcga.cancer.types<-c('laml','acc','blca','lgg','brca','cesc','chol','coadread','
 ##not all have counts
 cell.line.tiss<-c('CENTRAL_NERVOUS_SYSTEM','BONE','PROSTATE','STOMACH','URINARY_TRACT','OVARY','HAEMATOPOIETIC_AND_LYMPHOID_TISSUE','KIDNEY','THYROID','SKIN','SOFT_TISSUE','SALIVARY_GLAND','LUNG','PLEURA','LIVER','ENDOMETRIUM','PANCREAS','BREAST','UPPER_AERODIGESTIVE_TRACT','LARGE_INTESTINE','AUTONOMIC_GANGLIA','OESOPHAGUS','BILIARY_TRACT','SMALL_INTESTINE')
 
-getDisMutationData<-function(dis='',study='tcga'){
+getDisMutationData<-function(dis='',study='tcga',genelist=all.genes){
 
   mycgds = CGDS("http://www.cbioportal.org/public-portal/")
   all.studies<-getCancerStudies(mycgds)
@@ -69,15 +70,23 @@ getDisMutationData<-function(dis='',study='tcga'){
     allprofs<-getGeneticProfiles(mycgds,cs)[,1]
     profile=allprofs[grep('mutations',allprofs)]
     seqSamps=caseLists$case_list_id[grep('sequenced',caseLists$case_list_id)]
-    gene.groups=split(all.genes, ceiling(seq_along(all.genes)/400))
+    if(length(genelist)>800)
+      gene.groups=split(genelist, ceiling(seq_along(genelist)/400))
+    else
+      gene.groups=list(genelist)
     dat<-lapply(gene.groups,function(g) getProfileData(mycgds,g,profile,seqSamps))
     ddat<-matrix()
+    if(length(dat)==1){
+      ddat<-t(as.data.frame(dat))
+    }else{
     for(i in which(sapply(dat,nrow)!=0)){
       ddat<-cbind(ddat,dat[[i]])
     }
+    }
     nans<-which(apply(ddat,2,function(x) all(is.nan(x)||is.na(x))))
     # nas<-which(apply(ddat,2,function(x) all(is.na(x))))
-    ddat<-ddat[,-nans]
+    if(nrow(ddat)>1)
+        ddat<-ddat[,-nans]
     ##now set to binary matrix
     dfdat<-apply(ddat,1,function(x){
       sapply(unlist(x),function(y) !is.na(y) && y!='NaN')
@@ -114,9 +123,42 @@ getDisMutationData<-function(dis='',study='tcga'){
 
 }
 
+#'get TCGA clientd ata required for survival analysis
+#'
+getDisClinicalData<-function(dis='',study='tcga'){
+  mycgds = CGDS("http://www.cbioportal.org/")
+  all.studies<-getCancerStudies(mycgds)
+  # Get available case lists (collection of samples) for a given cancer study
+
+  if(tolower(dis)=='alltcga')
+    dval=''
+  else
+    dval=dis
+  
+  ind=grep(paste(tolower(dval),paste(study,'$',sep=''),sep='_'),all.studies$cancer_study_id)
+  print(paste('found',length(ind),study,'studies for disease',dis))
+  if(length(ind)==0){
+    return(NULL)
+  }
+  
+  mycancerstudy<-all.studies$cancer_study_id[ind]
+  
+  clin.list<-lapply(mycancerstudy,function(cs){
+    print(paste(cs,study,'Clinical data'))
+    caseLists<-getCaseLists(mycgds,cs)%>%select(case_list_id,case_ids)
+    clinDat<-getClinicalData(mycgds,caseLists[grep('all',caseLists$case_list_id),1])
+    clinDat%>%select(OS_MONTHS,OS_STATUS,DFS_MONTHS,DFS_STATUS)%>%mutate(Sample=rownames(clinDat),Study=cs)
+  })
+  
+  full.dat<-do.call('rbind',clin.list)
+  full.dat
+
+  
+}
+
 #'formats TCGA expression data into a single matrix, often combining
 #'samples from multiple studies
-getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
+getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE,genelist=all.genes){
   #if disease is blank will get all diseases
   mycgds = CGDS("http://www.cbioportal.org/public-portal/")
   all.studies<-getCancerStudies(mycgds)
@@ -154,14 +196,21 @@ getDisExpressionData<-function(dis='',study='tcga',getZscores=FALSE){
       mrnaSamps=mrnaSamps[grep('v2',mrnaSamps)]
     else if(length(mrnaSamps)==0)
       mrnaSamps=caseLists$case_list_id[grep('mrna',caseLists$case_list_id)]
-    gene.groups=split(all.genes, ceiling(seq_along(all.genes)/400))
+    if(length(genelist)>400)
+        gene.groups=split(all.genes, ceiling(seq_along(all.genes)/400))
+    else
+      gene.groups=list(genelist)
     dat<-lapply(gene.groups,function(g) getProfileData(mycgds,g,profile,mrnaSamps))
     ddat<-matrix()
-    for(i in which(sapply(dat,nrow)!=0)){
-      ddat<-cbind(ddat,dat[[i]])
+    if(length(dat)==1){
+      ddat<-t(as.data.frame(dat))
+    }else{
+      for(i in which(sapply(dat,nrow)!=0)){
+        ddat<-cbind(ddat,dat[[i]])
+      }
     }
     nans<-which(apply(ddat,2,function(x) all(is.na(x))||mean(x,na.rm=T)==0))
-    if(length(nans)>0)
+    if(length(nans)>0 && nrow(ddat)>1)
       ddat<-ddat[,-nans]
     #ddat<-ddat[,-1]
     ddat<-data.frame(t(ddat))
