@@ -34,7 +34,7 @@ getSamplesForDisease<-function(dis='',study='tcga'){
 #various disease types in cbioporta.
 broad.cancer.types=c('brca','cellline','lcll','desm','dlbc','esca','hnsc','luad','mbl','skcm','mm','nsclc','es','prad')
 mskcc.cancer.types=c('acyc','acbc','blca','coadread','luad','mpnst','thyroid','prad','hnc','sarc','scco')
-tcga.cancer.types<-c('laml','acc','blca','lgg','brca','cesc','chol','coadread','esca','gbm','hnsc','kich','kirc','kirp','lihc','luad','lusc','dlbc','lgggbm','ov','nsclc','paad','thca','pcpg','prad','sarc','skcm','stad','tgct','thym','ucs','ucec','uvm')#meso has no sequence data
+tcga.cancer.types<<-c('laml','acc','blca','lgg','brca','cesc','chol','coadread','esca','gbm','hnsc','kich','kirc','kirp','lihc','luad','lusc','dlbc','ov','paad','thca','pcpg','prad','sarc','skcm','stad','tgct','thym','ucs','ucec','uvm')#meso has no sequence data
 
 ##not all have counts
 cell.line.tiss<-c('CENTRAL_NERVOUS_SYSTEM','BONE','PROSTATE','STOMACH','URINARY_TRACT','OVARY','HAEMATOPOIETIC_AND_LYMPHOID_TISSUE','KIDNEY','THYROID','SKIN','SOFT_TISSUE','SALIVARY_GLAND','LUNG','PLEURA','LIVER','ENDOMETRIUM','PANCREAS','BREAST','UPPER_AERODIGESTIVE_TRACT','LARGE_INTESTINE','AUTONOMIC_GANGLIA','OESOPHAGUS','BILIARY_TRACT','SMALL_INTESTINE')
@@ -83,10 +83,11 @@ getDisMutationData<-function(dis='',study='tcga',genelist=all.genes){
       ddat<-cbind(ddat,dat[[i]])
     }
     }
-    nans<-which(apply(ddat,2,function(x) all(is.nan(x)||is.na(x))))
+    
+#    nans<-which(apply(ddat,2,function(x) all(is.nan(x)||is.na(x))))
     # nas<-which(apply(ddat,2,function(x) all(is.na(x))))
-    if(nrow(ddat)>1)
-        ddat<-ddat[,-nans]
+#    if(nrow(ddat)>1)
+#        ddat<-ddat[,-nans]
     ##now set to binary matrix
     dfdat<-apply(ddat,1,function(x){
       sapply(unlist(x),function(y) !is.na(y) && y!='NaN')

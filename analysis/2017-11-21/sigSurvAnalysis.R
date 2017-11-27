@@ -22,6 +22,7 @@ survivalAnalysisByMutation<-function(dis,genelist){
   
   pval=summary(res)$logtest[3]
   ##then compute curve, p-value, plot if signif.
+  print(pval)
   fname=''
   if(pval<0.05){
     ggsurvplot(fit = fit,data=df,pval=TRUE)+ggtitle(paste(paste(genelist,collapse='_'),'mutants in',dis))
@@ -45,18 +46,20 @@ survivalAnalysisByExpression<-function(dis,genelist){
   expr.status[which(mean.exp>quarts[2])]<-'Mid'
   expr.status[which(mean.exp>quarts[3])]<-'High'
   
-  geneExpr<-data.frame(Expr=expr.status,Sample=names(mean.exp))
+  geneExpr<-data.frame(Expr=expr.status,Sample=names(mean.exp),ExprVal=mean.exp)
   
   ##then get patient data
   clin.data<-getDisClinicalData(dis=dis)
   
   df<-clin.data%>%select(OS_MONTHS,OS_STATUS,Sample)%>%left_join(geneExpr,by='Sample')%>%mutate(event=(OS_STATUS=="DECEASED")*1)
   #df<-df%>%mutate(ExprLabel=ifelse(Mutation,paste(paste(genelist,collapse=','),'mutated'),'wildtype'))
-  fit<-survfit(Surv(df$OS_MONTHS,df$event,)~df$Expr)
-  res<-coxph(Surv(df$OS_MONTHS,df$event,)~df$Expr)
+  fit<-survfit(Surv(df$OS_MONTHS,df$event,)~df$ExprVal)
+  res<-coxph(Surv(df$OS_MONTHS,df$event,)~df$ExprVal)
   
   pval=summary(res)$logtest[3]
   ##then compute curve, p-value, plot if signif.
+  print(pval)
+  fname=''
   if(pval<0.05){
     ggsurvplot(fit = fit,data=df,pval=TRUE)+ggtitle(paste(paste(genelist,collapse='_'),'expression in',dis))
     fname=paste(paste(genelist,collapse='_'),'exprStatusIn',dis,'KMPlot.png',sep='')
