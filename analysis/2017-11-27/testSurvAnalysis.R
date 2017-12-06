@@ -32,3 +32,11 @@ for(dis in tcga.cancer.types){
   print(paste('Significance of',paste(gene,collapse='_'),'in',dis,'is',expr.sig$pval,'(expression) and',mut.sig$pval,'(mutation)'))
   
 }
+
+gene='NF2'
+for(dis in tcga.cancer.types){
+  mut.sig<-survivalAnalysisByMutation(dis,c(gene))
+  expr.sig<-survivalAnalysisByExpression(dis,c(gene))
+  print(paste('Significance of',gene,'in',dis,'is',expr.sig$pval,'(expression) and',mut.sig$pval,'(mutation)'))
+  
+}

@@ -5,7 +5,7 @@ library(tidyverse)
 library(data.table)
 
 script.dir <- dirname(sys.frame(1)$ofile)
-all.genes<<-unique(fread('../../data/ucsc_kgXref_hg19_2015_10_29.csv')$geneSymbol)
+all.genes<<-unique(fread('../data/ucsc_kgXref_hg19_2015_10_29.csv')$geneSymbol)
 
 
 #'getSamplesForDisease creates a unified mapping of all samples
