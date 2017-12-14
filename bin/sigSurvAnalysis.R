@@ -4,6 +4,58 @@ library(survminer)
 #script.dir <- dirname(sys.frame(1)$ofile)
 source("cBioPortalData.R",chdir=TRUE)
 
+
+survivalAnalysisByMutationAndExpression<-function(dis,mutGene,exprGene,listName=''){
+  
+  #first get mutation status for genelist
+  mut.data<-getDisMutationData(dis,genelist=mutGene)
+  
+  ##then get patient data
+  clin.data<-NULL
+  try(
+    clin.data<-getDisClinicalData(dis=dis)
+  )
+  if(is.null(clin.data) || all(!apply(mut.data,2,any)))
+    return(list(fname='',pval=1.0))
+  ##then bracket patient data
+  mutated<-data.frame(Mutation=apply(mut.data,1, any)*1)
+  mutated$Sample=rownames(mutated)
+  
+  df<-clin.data%>%select(OS_MONTHS,OS_STATUS,Sample)%>%inner_join(mutated,by='Sample')%>%mutate(event=(OS_STATUS=="DECEASED")*1)
+  df<-df%>%mutate(MutLabel=ifelse(Mutation,paste(ifelse(listName=='',paste(mutGene,collapse=','),listName),'mutated'),'wildtype'))
+  
+  ##now get expression
+  expr.data<-getDisExpressionData(dis=dis,getZscores=TRUE,genelist=exprGene)
+  mean.exp<-apply(expr.data,1,mean,na.rm=T)
+  
+  ##bracket by mean quartile
+  quarts<-quantile(mean.exp,c(0.25,0.5,0.75))
+  
+  expr.status<-rep("Low",length(mean.exp))
+  #expr.status[which(mean.exp>quarts[2])]<-'Mid'
+  expr.status[which(mean.exp>median(mean.exp,na.rm=T))]<-'High'#quarts[3])]<-'High'
+  
+  geneExpr<-data.frame(Expr=expr.status,Sample=names(mean.exp),ExprVal=mean.exp)
+  full.expr<-data.frame(expr.data,Sample=names(mean.exp))
+  
+  df<-df%>%inner_join(geneExpr,by='Sample')
+  fit<-survfit(Surv(OS_MONTHS,event)~Expr,data=df)
+  
+  fname=paste(ifelse(listName=='',paste(exprGene,collapse='_'),gsub(' ','_',listname)),'exprStatusIn',dis,'With',mutGene,'Mutated_KMPlot.png',sep='')
+  title=paste(ifelse(listName=='',paste(exprGene,collapse='_'),gsub(' ','_',listname)),'expression in',dis,'\nWith',mutGene,'Mutated')
+  
+  res<-coxph(Surv(time=df$OS_MONTHS,event=df$event)~df$ExprVal)
+  
+  pval=summary(res)$logtest[3]
+  
+  if(pval<0.1){  survminer::ggsurvplot(fit = fit,data=df,pval=TRUE,conf.int=TRUE,facet.by='MutLabel')+ggplot2::ggtitle(title)
+  ggsave(fname)
+  }
+  
+  return(list(pval=pval,file=fname))
+}
+
+
 survivalAnalysisByMutation<-function(dis,genelist,listname=''){
   
   #first get mutation status for genelist

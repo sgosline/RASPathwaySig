@@ -1,6 +1,6 @@
 ##compare surv analysis calls for mutations and expression signatures across cancers/and NF1/NF2 signatures
 
-source("../../bin/sigSurvAnalysis.R")
+source("../../bin/sigSurvAnalysis.R",chdir=T)
 
 gene='NF1'
 
